@@ -1,10 +1,10 @@
 # DiyPCBPrototype
 [![Deploy to GitHub Pages](https://github.com/Salnika/diy-pcb-prototype-layout/actions/workflows/deploy.yml/badge.svg)](https://github.com/Salnika/diy-pcb-prototype-layout/actions/workflows/deploy.yml)
 
-## Démo (GitHub Pages)
-Lien direct : https://salnika.github.io/diy-pcb-prototype-layout/
+## Demo (GitHub Pages)
+Direct link: https://salnika.github.io/diy-pcb-prototype-layout/
 
-Le site est automatiquement déployé sur GitHub Pages à chaque push sur `master` via GitHub Actions.
+The site is automatically deployed to GitHub Pages on every push to `master` via GitHub Actions.
 
 ## Dev
 1. `bun install`
