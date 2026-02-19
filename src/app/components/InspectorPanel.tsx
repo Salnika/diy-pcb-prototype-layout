@@ -1,0 +1,382 @@
+import { alphaLabel } from "../../model";
+import type { Board, Net, NetLabel, Part, Trace } from "../../model";
+import type { Dispatch } from "react";
+import {
+  BOARD_MAX,
+  BOARD_MIN,
+  convertPartKind,
+  formatTerminal,
+  netDisplayName,
+} from "../appUtils";
+import * as styles from "../App.css";
+import { rotatePart, type Action, type Selection } from "../store";
+import { PART_KIND_OPTIONS } from "./toolDefinitions";
+
+type InspectorPanelProps = Readonly<{
+  collapsed: boolean;
+  board: Board;
+  selection: Selection;
+  selectedPart: Part | null;
+  selectedTrace: Trace | null;
+  selectedNetLabel: NetLabel | null;
+  selectedNet: Net | null;
+  selectedPartFixed: boolean;
+  projectParts: readonly Part[];
+  projectNets: readonly Net[];
+  fixedPartCount: number;
+  fixedHoleCount: number;
+  dispatch: Dispatch<Action>;
+  onToggleCollapsed: () => void;
+  onUpdateBoardSize: (nextWidth: number, nextHeight: number) => void;
+  onToggleBoardLabeling: () => void;
+}>;
+
+export function InspectorPanel({
+  collapsed,
+  board,
+  selection,
+  selectedPart,
+  selectedTrace,
+  selectedNetLabel,
+  selectedNet,
+  selectedPartFixed,
+  projectParts,
+  projectNets,
+  fixedPartCount,
+  fixedHoleCount,
+  dispatch,
+  onToggleCollapsed,
+  onUpdateBoardSize,
+  onToggleBoardLabeling,
+}: InspectorPanelProps) {
+  return (
+    <aside className={`${styles.rightPane} ${collapsed ? styles.rightPaneCollapsed : ""}`}>
+      <div className={styles.inspectorHeader}>
+        {!collapsed ? <h2 className={styles.paneTitle}>Inspector</h2> : <span />}
+        <button
+          type="button"
+          className={styles.inspectorToggle}
+          onClick={onToggleCollapsed}
+          aria-label={collapsed ? "Ouvrir l'inspecteur" : "Réduire l'inspecteur"}
+          title={collapsed ? "Ouvrir l'inspecteur" : "Réduire l'inspecteur"}
+        >
+          {collapsed ? "⟨" : "⟩"}
+        </button>
+      </div>
+      {collapsed ? null : (
+        <div className={styles.paneSection}>
+          <div className={styles.inspectorRow}>
+            <div className={styles.label}>Board</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <input
+                className={styles.input}
+                type="number"
+                min={BOARD_MIN}
+                max={BOARD_MAX}
+                value={board.width}
+                onChange={(event) => {
+                  const next = Number(event.target.value);
+                  if (!Number.isFinite(next)) return;
+                  onUpdateBoardSize(next, board.height);
+                }}
+                aria-label="Board width"
+              />
+              <input
+                className={styles.input}
+                type="number"
+                min={BOARD_MIN}
+                max={BOARD_MAX}
+                value={board.height}
+                onChange={(event) => {
+                  const next = Number(event.target.value);
+                  if (!Number.isFinite(next)) return;
+                  onUpdateBoardSize(board.width, next);
+                }}
+                aria-label="Board height"
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" className={styles.smallButton} onClick={onToggleBoardLabeling}>
+                Inverser labels
+              </button>
+              <span className={styles.chip}>
+                {board.labeling.rows === "alpha" ? "Lignes A.." : "Lignes 1.."} ·{" "}
+                {board.labeling.cols === "alpha" ? "Colonnes A.." : "Colonnes 1.."}
+              </span>
+              <span className={styles.chip}>
+                {board.height}×{board.width}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.inspectorRow}>
+            <div className={styles.label}>Nets</div>
+            {projectNets.length === 0 ? (
+              <span className={styles.chip}>Aucun net</span>
+            ) : (
+              <div className={styles.netList}>
+                {projectNets.map((net, index) => {
+                  const active = selectedNet?.id === net.id;
+                  return (
+                    <button
+                      key={net.id}
+                      type="button"
+                      className={active ? styles.netButtonActive : styles.netButton}
+                      onClick={() => dispatch({ type: "SELECT", selection: { type: "net", id: net.id } })}
+                    >
+                      <span>{netDisplayName(net, index)}</span>
+                      <span className={styles.netCount}>{net.terminals.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <span className={styles.chip}>Astuce: outil Connect (C) pour créer/ajouter</span>
+          </div>
+
+          <div className={styles.inspectorRow}>
+            <div className={styles.label}>Contraintes</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <span className={styles.chip}>Parts fixes: {fixedPartCount}</span>
+              <span className={styles.chip}>Points fixes: {fixedHoleCount}</span>
+            </div>
+            <span className={styles.chip}>Astuce: outil Point fixe (F)</span>
+          </div>
+
+          {selection.type === "none" ? <span className={styles.chip}>Aucune sélection</span> : null}
+
+          {selectedPart ? (
+            <>
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Ref</div>
+                <input
+                  className={styles.input}
+                  value={selectedPart.ref}
+                  onChange={(event) =>
+                    dispatch({ type: "UPDATE_PART", part: { ...selectedPart, ref: event.target.value } })
+                  }
+                />
+              </div>
+
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Type</div>
+                <select
+                  className={styles.input}
+                  value={selectedPart.kind}
+                  onChange={(event) =>
+                    dispatch({
+                      type: "UPDATE_PART",
+                      part: convertPartKind(selectedPart, event.target.value as Part["kind"]),
+                    })
+                  }
+                >
+                  {PART_KIND_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Value</div>
+                <input
+                  className={styles.input}
+                  value={selectedPart.value ?? ""}
+                  onChange={(event) =>
+                    dispatch({ type: "UPDATE_PART", part: { ...selectedPart, value: event.target.value } })
+                  }
+                />
+              </div>
+
+              {selectedPart.footprint.type === "dip" ? (
+                <div className={styles.inspectorRow}>
+                  <div className={styles.label}>Pins</div>
+                  <select
+                    className={styles.input}
+                    value={selectedPart.footprint.pins}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "UPDATE_PART",
+                        part: {
+                          ...selectedPart,
+                          footprint: {
+                            type: "dip",
+                            pins: Number(event.target.value),
+                            rowSpan: 3,
+                          },
+                        },
+                      })
+                    }
+                  >
+                    {Array.from({ length: 16 }).map((_, index) => {
+                      const pins = (index + 1) * 2;
+                      return (
+                        <option key={pins} value={pins}>
+                          {pins}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <div className={styles.chip}>rowSpan fixé: 3</div>
+                </div>
+              ) : null}
+
+              {selectedPart.footprint.type === "to92_inline3"
+                ? (() => {
+                    const pinNames = selectedPart.footprint.pinNames;
+                    const current: [string, string, string] = [
+                      pinNames?.[0] ?? "E",
+                      pinNames?.[1] ?? "B",
+                      pinNames?.[2] ?? "C",
+                    ];
+
+                    return (
+                      <div className={styles.inspectorRow}>
+                        <div className={styles.label}>Pins (labels)</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                          {([0, 1, 2] as const).map((idx) => (
+                            <input
+                              key={idx}
+                              className={styles.input}
+                              value={current[idx]}
+                              onChange={(event) => {
+                                const next: [string, string, string] = [...current];
+                                next[idx] = event.target.value;
+                                dispatch({
+                                  type: "UPDATE_PART",
+                                  part: {
+                                    ...selectedPart,
+                                    footprint: { type: "to92_inline3", pinNames: next },
+                                  },
+                                });
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()
+                : null}
+
+              <div className={styles.chip}>
+                Origin: {alphaLabel(selectedPart.placement.origin.y)}
+                {selectedPart.placement.origin.x + 1} — Rot {selectedPart.placement.rotation}°
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  className={selectedPartFixed ? styles.smallButtonActive : styles.smallButton}
+                  onClick={() => dispatch({ type: "TOGGLE_FIXED_PART", id: selectedPart.id })}
+                >
+                  {selectedPartFixed ? "Unlock" : "Lock"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.smallButton}
+                  onClick={() => dispatch({ type: "UPDATE_PART", part: rotatePart(selectedPart) })}
+                >
+                  Rotate (R)
+                </button>
+                <button
+                  type="button"
+                  className={styles.dangerButton}
+                  onClick={() => dispatch({ type: "DELETE_PART", id: selectedPart.id })}
+                >
+                  Delete
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {selectedTrace ? (
+            <>
+              <span className={styles.chip}>
+                Trace: {selectedTrace.kind} — {selectedTrace.nodes.length} nodes
+              </span>
+              <button
+                type="button"
+                className={styles.dangerButton}
+                onClick={() => dispatch({ type: "DELETE_TRACE", id: selectedTrace.id })}
+              >
+                Delete trace
+              </button>
+            </>
+          ) : null}
+
+          {selectedNetLabel ? (
+            <>
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Net name</div>
+                <input
+                  className={styles.input}
+                  value={selectedNetLabel.name}
+                  onChange={(event) =>
+                    dispatch({ type: "UPDATE_NETLABEL", id: selectedNetLabel.id, name: event.target.value })
+                  }
+                />
+              </div>
+              <button
+                type="button"
+                className={styles.dangerButton}
+                onClick={() => dispatch({ type: "DELETE_NETLABEL", id: selectedNetLabel.id })}
+              >
+                Delete label
+              </button>
+            </>
+          ) : null}
+
+          {selectedNet ? (
+            <>
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Net name</div>
+                <input
+                  className={styles.input}
+                  value={selectedNet.name ?? ""}
+                  onChange={(event) =>
+                    dispatch({ type: "UPDATE_NET_NAME", id: selectedNet.id, name: event.target.value })
+                  }
+                />
+              </div>
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Terminals</div>
+                {selectedNet.terminals.length === 0 ? (
+                  <span className={styles.chip}>Aucun terminal</span>
+                ) : (
+                  <div className={styles.netTerminalList}>
+                    {selectedNet.terminals.map((terminal, index) => {
+                      const info = formatTerminal(terminal, projectParts, board.labeling);
+                      return (
+                        <div key={`${selectedNet.id}-${index}`} className={styles.netTerminalRow}>
+                          <div>
+                            <div className={styles.netTerminalLabel}>{info.title}</div>
+                            {info.meta ? <div className={styles.netTerminalMeta}>{info.meta}</div> : null}
+                          </div>
+                          <button
+                            type="button"
+                            className={styles.smallButton}
+                            onClick={() => dispatch({ type: "DELETE_NET_TERMINAL", id: selectedNet.id, index })}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className={styles.dangerButton}
+                onClick={() => dispatch({ type: "DELETE_NET", id: selectedNet.id })}
+              >
+                Delete net
+              </button>
+            </>
+          ) : null}
+        </div>
+      )}
+    </aside>
+  );
+}

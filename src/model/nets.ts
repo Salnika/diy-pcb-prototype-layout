@@ -1,6 +1,6 @@
 import { getPartPins } from "./footprints";
 import { holeKey, isHole } from "./hole";
-import type { Hole, NetLabel, Project, Trace } from "./types";
+import type { Hole, NetLabel, Part, Project, Trace } from "./types";
 
 type NetId = string;
 
@@ -80,6 +80,56 @@ function stableNetIdFromHoles(holes: readonly Hole[]): NetId {
     if (best === null || k < best) best = k;
   }
   return `net:${best ?? "empty"}`;
+}
+
+export function movedPartPinMap(previous: Part, next: Part): ReadonlyMap<string, Hole> {
+  if (previous.id !== next.id) return new Map<string, Hole>();
+
+  const nextPins = new Map(getPartPins(next).map((pin) => [pin.pinId, pin.hole]));
+  const moved = new Map<string, Hole>();
+
+  for (const pin of getPartPins(previous)) {
+    const nextHole = nextPins.get(pin.pinId);
+    if (!nextHole) continue;
+    if (nextHole.x === pin.hole.x && nextHole.y === pin.hole.y) continue;
+    moved.set(holeKey(pin.hole), nextHole);
+  }
+
+  return moved;
+}
+
+export function moveConnectedTraceEndpoints(
+  traces: readonly Trace[],
+  movedPinsByHole: ReadonlyMap<string, Hole>,
+): readonly Trace[] {
+  if (movedPinsByHole.size === 0) return traces;
+
+  let changed = false;
+  const updated = traces.map((trace) => {
+    if (trace.nodes.length === 0) return trace;
+    const nodes = [...trace.nodes];
+    let traceChanged = false;
+
+    const startIndex = 0;
+    const endIndex = nodes.length - 1;
+    const nextStart = movedPinsByHole.get(holeKey(nodes[startIndex]));
+    if (nextStart && (nextStart.x !== nodes[startIndex].x || nextStart.y !== nodes[startIndex].y)) {
+      nodes[startIndex] = nextStart;
+      traceChanged = true;
+    }
+
+    const nextEnd = movedPinsByHole.get(holeKey(nodes[endIndex]));
+    if (nextEnd && (nextEnd.x !== nodes[endIndex].x || nextEnd.y !== nodes[endIndex].y)) {
+      nodes[endIndex] = nextEnd;
+      traceChanged = true;
+    }
+
+    if (!traceChanged) return trace;
+    changed = true;
+    return { ...trace, nodes };
+  });
+
+  return changed ? updated : traces;
 }
 
 export function computeNetIndex(project: Project): NetIndex {

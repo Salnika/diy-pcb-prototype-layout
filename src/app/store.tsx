@@ -3,6 +3,9 @@ import {
   createId,
   createNewProject,
   autoLayout,
+  computeNetIndex,
+  moveConnectedTraceEndpoints,
+  movedPartPinMap,
   tracesFromNetlist,
   getPartPins,
   holeKey,
@@ -362,6 +365,63 @@ function uniqueHoles(holes: readonly Hole[]): Hole[] {
   return [...map.values()];
 }
 
+function movedPinsForVacatedHoles(
+  nextParts: readonly Part[],
+  movedPins: ReadonlyMap<string, Hole>,
+): ReadonlyMap<string, Hole> {
+  if (movedPins.size === 0) return movedPins;
+
+  // Keep endpoint remap only for old holes that become empty after the move.
+  const occupiedAfterMove = new Set<string>();
+  for (const part of nextParts) {
+    for (const pin of getPartPins(part)) {
+      occupiedAfterMove.add(holeKey(pin.hole));
+    }
+  }
+
+  const filtered = new Map<string, Hole>();
+  for (const [fromKey, toHole] of movedPins.entries()) {
+    if (occupiedAfterMove.has(fromKey)) continue;
+    filtered.set(fromKey, toHole);
+  }
+  return filtered;
+}
+
+function autoZeroLengthWiresForPlacedPart(project: Project, part: Part): readonly Trace[] {
+  const existingPinHoles = new Set<string>();
+  for (const existingPart of project.parts) {
+    for (const pin of getPartPins(existingPart)) {
+      existingPinHoles.add(holeKey(pin.hole));
+    }
+  }
+
+  const candidateHoles = uniqueHoles(
+    getPartPins(part)
+      .map((pin) => pin.hole)
+      .filter((hole) => existingPinHoles.has(holeKey(hole))),
+  );
+  if (candidateHoles.length === 0) return [];
+
+  return candidateHoles
+    .filter((hole) => {
+      const key = holeKey(hole);
+      return !project.traces.some((trace) => {
+        if (trace.nodes.length < 2) return false;
+        const start = trace.nodes[0];
+        const end = trace.nodes[trace.nodes.length - 1];
+        return holeKey(start) === key && holeKey(end) === key;
+      });
+    })
+    .map(
+      (hole): Trace => ({
+        id: createId("t"),
+        kind: "wire",
+        layer: "bottom",
+        nodes: [hole, hole],
+      }),
+    );
+}
+
 function insertJunctionsInTrace(trace: Trace, junctions: readonly Hole[]): Trace {
   if (trace.nodes.length < 2 || junctions.length === 0) return trace;
   const existing = new Set(trace.nodes.map(holeKey));
@@ -447,6 +507,83 @@ function addTerminal(net: Net, terminal: NetTerminal): Net {
   return { ...net, terminals: [...net.terminals, terminal] };
 }
 
+type InferredNetlistResult = Readonly<{
+  netlist: readonly Net[];
+  warnings: readonly string[];
+}>;
+
+function inferNetlistFromCurrentConnectivity(project: Project): InferredNetlistResult {
+  const netIndex = computeNetIndex(project);
+  const pinTerminalsByHole = new Map<string, NetTerminal[]>();
+  for (const part of project.parts) {
+    for (const pin of getPartPins(part)) {
+      const key = holeKey(pin.hole);
+      const list = pinTerminalsByHole.get(key) ?? [];
+      list.push({ kind: "pin", partId: part.id, pinId: pin.pinId });
+      pinTerminalsByHole.set(key, list);
+    }
+  }
+
+  const endpointByKey = new Map<string, Hole>();
+  for (const trace of project.traces) {
+    if (trace.nodes.length < 2) continue;
+    const start = trace.nodes[0];
+    const end = trace.nodes[trace.nodes.length - 1];
+    endpointByKey.set(holeKey(start), start);
+    endpointByKey.set(holeKey(end), end);
+  }
+
+  const endpointByNetId = new Map<string, Hole[]>();
+  for (const [key, hole] of endpointByKey.entries()) {
+    const netId = netIndex.holeToNetId.get(key);
+    if (!netId) continue;
+    const list = endpointByNetId.get(netId) ?? [];
+    list.push(hole);
+    endpointByNetId.set(netId, list);
+  }
+
+  const netlist: Net[] = [];
+  for (const [rawNetId, holes] of netIndex.netIdToHoles.entries()) {
+    let net: Net = {
+      id: createId("net"),
+      name: netIndex.netIdToName.get(rawNetId),
+      terminals: [],
+    };
+
+    for (const hole of holes) {
+      const key = holeKey(hole);
+      const pinTerminals = pinTerminalsByHole.get(key) ?? [];
+      for (const terminal of pinTerminals) {
+        net = addTerminal(net, terminal);
+      }
+    }
+
+    for (const hole of endpointByNetId.get(rawNetId) ?? []) {
+      const key = holeKey(hole);
+      if ((pinTerminalsByHole.get(key) ?? []).length > 0) continue;
+      net = addTerminal(net, { kind: "hole", hole });
+    }
+
+    if (net.terminals.length >= 2) {
+      netlist.push(net);
+    }
+  }
+
+  if (netlist.length === 0) {
+    return {
+      netlist,
+      warnings: [
+        "Auto-layout: netlist vide et aucune connectivite exploitable trouvee dans les traces existantes.",
+      ],
+    };
+  }
+
+  return {
+    netlist,
+    warnings: [`Auto-layout: netlist inferee depuis les traces existantes (${netlist.length} nets).`],
+  };
+}
+
 function toggleFixedPartIds(ids: readonly string[], id: string): readonly string[] {
   return ids.includes(id) ? ids.filter((p) => p !== id) : [...ids, id];
 }
@@ -472,6 +609,18 @@ function commit(state: AppState, nextProject: Project): AppState {
   };
   const tabs = [...state.tabs];
   tabs[activeIndex] = nextTab;
+  return { ...state, tabs };
+}
+
+function setActiveTabError(state: AppState, message: string): AppState {
+  const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
+  if (activeIndex < 0) return state;
+  const tab = state.tabs[activeIndex];
+  const tabs = [...state.tabs];
+  tabs[activeIndex] = {
+    ...tab,
+    ui: { ...tab.ui, traceDraft: null, lastError: message },
+  };
   return { ...state, tabs };
 }
 
@@ -643,7 +792,12 @@ function reducer(state: AppState, action: Action): AppState {
         tabs[activeIndex] = { ...tab, ui: { ...tab.ui, lastError: err } };
         return { ...state, tabs };
       }
-      return commit(state, { ...active.project, parts: [...active.project.parts, part] });
+      const autoWires = autoZeroLengthWiresForPlacedPart(active.project, part);
+      return commit(state, {
+        ...active.project,
+        parts: [...active.project.parts, part],
+        traces: [...active.project.traces, ...autoWires],
+      });
     }
     case "UPDATE_PART": {
       const active = state.tabs.find((t) => t.id === state.activeTabId);
@@ -661,7 +815,12 @@ function reducer(state: AppState, action: Action): AppState {
         return { ...state, tabs };
       }
       const parts = active.project.parts.map((p) => (p.id === action.part.id ? action.part : p));
-      return commit(state, { ...active.project, parts });
+      const movedPinsRaw = movedPartPinMap(current, action.part);
+      const movedPins = movedPinsForVacatedHoles(parts, movedPinsRaw);
+      const movedPinTargets = uniqueHoles([...movedPins.values()]);
+      const movedTraces = moveConnectedTraceEndpoints(active.project.traces, movedPins);
+      const traces = insertJunctions(movedTraces, movedPinTargets);
+      return commit(state, { ...active.project, parts, traces });
     }
     case "DELETE_PART": {
       const active = state.tabs.find((t) => t.id === state.activeTabId);
@@ -806,8 +965,34 @@ function reducer(state: AppState, action: Action): AppState {
     case "RUN_AUTO_LAYOUT": {
       const active = state.tabs.find((t) => t.id === state.activeTabId);
       if (!active) return state;
-      const { project, warnings } = autoLayout(active.project, action.options);
+      let sourceProject = active.project;
+      const preWarnings: string[] = [];
+
+      if (sourceProject.netlist.length === 0) {
+        const inferred = inferNetlistFromCurrentConnectivity(sourceProject);
+        preWarnings.push(...inferred.warnings);
+        if (inferred.netlist.length === 0) {
+          return setActiveTabError(state, `Auto-layout: ${preWarnings.join(" ")}`);
+        }
+        sourceProject = { ...sourceProject, netlist: inferred.netlist };
+      }
+
+      const { project, warnings } = autoLayout(sourceProject, action.options);
       const traceBuild = tracesFromNetlist(project);
+      const combinedWarnings = [...preWarnings, ...warnings, ...traceBuild.warnings];
+
+      if (traceBuild.totalNetCount === 0) {
+        return setActiveTabError(
+          state,
+          `Auto-layout annule: aucun net routable (au moins 2 terminaux) n'a ete trouve.`,
+        );
+      }
+
+      if (traceBuild.totalNetCount > 0 && !traceBuild.complete) {
+        const message = `Auto-layout annule: routage incomplet (${traceBuild.routedNetCount}/${traceBuild.totalNetCount} nets). ${combinedWarnings.join(" ")}`;
+        return setActiveTabError(state, message);
+      }
+
       const updatedProject = { ...project, traces: traceBuild.traces };
       const next = commit(state, updatedProject);
       const activeIndex = next.tabs.findIndex((t) => t.id === next.activeTabId);
@@ -815,7 +1000,6 @@ function reducer(state: AppState, action: Action): AppState {
       const tab = next.tabs[activeIndex];
       const selection =
         tab.ui.selection.type === "trace" ? { type: "none" as const } : tab.ui.selection;
-      const combinedWarnings = [...warnings, ...traceBuild.warnings];
       const message =
         combinedWarnings.length > 0 ? `Auto-layout: ${combinedWarnings.join(" ")}` : null;
       const tabs = [...next.tabs];
@@ -851,7 +1035,8 @@ function reducer(state: AppState, action: Action): AppState {
       const draft = active.ui.traceDraft;
       if (!draft) return state;
       const last = draft.nodes[draft.nodes.length - 1];
-      if (last && last.x === action.hole.x && last.y === action.hole.y) return state;
+      // Autorise [A, A] pour representer un fil de longueur 0.
+      if (last && last.x === action.hole.x && last.y === action.hole.y && draft.nodes.length > 1) return state;
       const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
       const tab = state.tabs[activeIndex];
       const nextTab: TabState = {
