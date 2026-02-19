@@ -91,6 +91,7 @@ function renderPart(part: Part): string {
 
   const symbol = buildSchematicSymbol(part, pinGeometries);
   const labelAnchor = symbol.refAnchor ?? { x: fallbackLabelX, y: fallbackLabelY };
+  const partValue = part.value?.trim();
 
   const bodyFillStyle =
     "fill:rgba(255,255,255,0.04);stroke:rgba(238,240,255,0.45);stroke-width:2;stroke-linejoin:round;stroke-linecap:round";
@@ -132,7 +133,15 @@ function renderPart(part: Part): string {
 
   const text = `<text x="${labelAnchor.x}" y="${labelAnchor.y}" text-anchor="middle" style="fill:#eef0ff;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:11">${esc(
     part.ref,
-  )}</text>`;
+  )}</text>${
+    partValue
+      ? `<text x="${labelAnchor.x}" y="${
+          labelAnchor.y + 10
+        }" text-anchor="middle" style="fill:#aab0d6;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:9">${esc(
+          partValue,
+        )}</text>`
+      : ""
+  }`;
 
   const pinTexts = symbol.texts
     .map(

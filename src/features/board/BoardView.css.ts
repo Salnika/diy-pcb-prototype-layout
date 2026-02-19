@@ -186,6 +186,12 @@ export const partLabel = style({
   fontSize: 11,
 });
 
+export const partValueLabel = style({
+  fill: vars.color.mutedText,
+  fontFamily: vars.font.mono,
+  fontSize: 9,
+});
+
 export const partPinLabel = style({
   fill: vars.color.mutedText,
   fontFamily: vars.font.mono,

@@ -320,6 +320,7 @@ export function PartLayer({
     const fallbackLabelY =
       pinGeometries.reduce((sum, pin) => sum + pin.center.y, 0) / Math.max(1, pinGeometries.length) - 10;
     const labelAnchor = symbol.refAnchor ?? { x: fallbackLabelX, y: fallbackLabelY };
+    const partValue = part.value?.trim();
     const lockPos = { x: labelAnchor.x + 10, y: labelAnchor.y - 10 };
 
     return (
@@ -376,6 +377,11 @@ export function PartLayer({
         <text x={labelAnchor.x} y={labelAnchor.y} textAnchor="middle" className={styles.partLabel}>
           {part.ref}
         </text>
+        {partValue ? (
+          <text x={labelAnchor.x} y={labelAnchor.y + 10} textAnchor="middle" className={styles.partValueLabel}>
+            {partValue}
+          </text>
+        ) : null}
         {locked ? <circle cx={lockPos.x} cy={lockPos.y} r={3.5} className={styles.partLockMarker} /> : null}
         {symbol.texts.map((text, idx) => (
           <text
