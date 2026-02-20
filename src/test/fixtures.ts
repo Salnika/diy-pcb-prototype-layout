@@ -59,12 +59,18 @@ export function makeTo92Part(
   };
 }
 
-export function makeTrace(id: string, nodes: readonly Hole[], kind: "wire" | "jumper" = "wire"): Trace {
+export function makeTrace(
+  id: string,
+  nodes: readonly Hole[],
+  kind: "wire" | "jumper" = "wire",
+  color?: string,
+): Trace {
   return {
     id,
     kind,
     layer: "bottom",
     nodes,
+    color,
   };
 }
 

@@ -15,7 +15,7 @@ describe("renderProjectSvg", () => {
       width: 6,
       height: 4,
       parts: [part],
-      traces: [makeTrace("t1", [{ x: 1, y: 1 }, { x: 4, y: 1 }])],
+      traces: [{ ...makeTrace("t1", [{ x: 1, y: 1 }, { x: 4, y: 1 }]), color: "#ff00aa" }],
       netLabels: [makeLabel("nl1", { x: 1, y: 1 }, "VCC")],
       netlist: [makeNet("n1", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "hole", hole: { x: 1, y: 1 } }], "VCC")],
     });
@@ -28,6 +28,7 @@ describe("renderProjectSvg", () => {
     expect(svg).toContain("10k");
     expect(svg).toContain("VCC");
     expect(svg).toContain("<polyline");
+    expect(svg).toContain("stroke:#ff00aa");
     expect(svg).toContain("<circle");
   });
 

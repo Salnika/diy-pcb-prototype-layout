@@ -54,7 +54,7 @@ function baseProjectObject() {
         footprint: { type: "dip", pins: 8, rowSpan: 3 },
       },
     ],
-    traces: [{ id: "t1", kind: "wire", layer: "bottom", nodes: [{ x: 1, y: 1 }, { x: 1, y: 2 }] }],
+    traces: [{ id: "t1", kind: "wire", layer: "bottom", nodes: [{ x: 1, y: 1 }, { x: 1, y: 2 }], color: "#55ccaa" }],
     netLabels: [{ id: "nl1", at: { x: 1, y: 1 }, name: "GND", offset: { dx: 1, dy: 2 } }],
     netlist: [
       {

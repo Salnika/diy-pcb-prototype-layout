@@ -28,6 +28,7 @@ export const PRIMARY_TOOLS: readonly ToolButtonDefinition[] = [
 
 export const PART_TOOLS: readonly PartToolDefinition[] = [
   { kind: "resistor", icon: "resistor", label: "Résistance", title: "Résistance" },
+  { kind: "switch", icon: "switch", label: "Switch", title: "Switch" },
   { kind: "diode", icon: "diode", label: "Diode", title: "Diode" },
   { kind: "capacitor", icon: "capacitor", label: "Condensateur", title: "Condensateur" },
   {
@@ -54,6 +55,7 @@ export const PART_TOOLS: readonly PartToolDefinition[] = [
 
 export const PART_KIND_OPTIONS: readonly Readonly<{ value: PartKind; label: string }>[] = [
   { value: "resistor", label: "Résistance" },
+  { value: "switch", label: "Switch" },
   { value: "diode", label: "Diode" },
   { value: "capacitor", label: "Condensateur" },
   { value: "capacitor_ceramic", label: "Condensateur céramique" },

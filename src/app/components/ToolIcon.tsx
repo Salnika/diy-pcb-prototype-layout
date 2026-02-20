@@ -9,6 +9,7 @@ export type IconName =
   | "label"
   | "erase"
   | "resistor"
+  | "switch"
   | "diode"
   | "capacitor"
   | "capacitor_ceramic"
@@ -82,6 +83,16 @@ export function ToolIcon({ name }: Readonly<{ name: IconName }>) {
       return (
         <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
           <polyline points="2,12 5,12 7,9 10,15 13,9 16,15 18,12 22,12" />
+        </svg>
+      );
+    case "switch":
+      return (
+        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+          <line x1="2" y1="12" x2="8" y2="12" />
+          <line x1="16" y1="12" x2="22" y2="12" />
+          <line x1="8" y1="12" x2="15.5" y2="8" />
+          <circle cx="8" cy="12" r="1.5" />
+          <line x1="16" y1="9" x2="16" y2="15" />
         </svg>
       );
     case "diode":

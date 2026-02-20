@@ -200,6 +200,46 @@ function symbolForInline2(
   };
 }
 
+function symbolForSwitch(pins: readonly PinGeometry[]): PartSymbol {
+  const p1 = pickPin(pins, "1")?.center ?? pins[0]?.center;
+  const p2 = pickPin(pins, "2")?.center ?? pins[pins.length - 1]?.center;
+  if (!p1 || !p2) return { primitives: [], texts: [] };
+
+  const v = sub(p2, p1);
+  const l = len(v);
+  if (l < 1e-6) {
+    return {
+      primitives: [{ type: "line", role: "body", x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }],
+      texts: [],
+      refAnchor: { x: p1.x, y: p1.y - 10 },
+    };
+  }
+
+  const d = normalize(v);
+  const n = perp(d);
+  const mid = midpoint(p1, p2);
+
+  const gap = Math.max(2, Math.min(5, l / 4));
+  const contactA = sub(mid, mul(d, gap));
+  const contactB = add(mid, mul(d, gap));
+  const leverEnd = add(contactB, mul(n, -4));
+  const contactHeight = 3;
+  const contactBarA = add(contactB, mul(n, contactHeight));
+  const contactBarB = sub(contactB, mul(n, contactHeight));
+
+  return {
+    primitives: [
+      { type: "line", role: "body", x1: p1.x, y1: p1.y, x2: contactA.x, y2: contactA.y },
+      { type: "line", role: "body", x1: contactB.x, y1: contactB.y, x2: p2.x, y2: p2.y },
+      { type: "line", role: "body", x1: contactA.x, y1: contactA.y, x2: leverEnd.x, y2: leverEnd.y },
+      { type: "line", role: "body", x1: contactBarA.x, y1: contactBarA.y, x2: contactBarB.x, y2: contactBarB.y },
+      { type: "circle", role: "body", cx: contactA.x, cy: contactA.y, r: 1.8 },
+    ],
+    texts: inline2PinLabels(pins, mid),
+    refAnchor: { x: mid.x, y: mid.y - 10 },
+  };
+}
+
 function symbolForPotentiometer(pins: readonly PinGeometry[]): PartSymbol {
   const p1 = pickPin(pins, "1") ?? pins[0];
   const p2 = pickPin(pins, "2") ?? pins[1];
@@ -428,6 +468,8 @@ export function buildSchematicSymbol(part: Part, pins: readonly PinGeometry[]): 
   switch (part.kind) {
     case "resistor":
       return symbolForInline2(pins, "resistor");
+    case "switch":
+      return symbolForSwitch(pins);
     case "diode":
       return symbolForInline2(pins, "diode");
     case "capacitor":

@@ -126,6 +126,7 @@ export type Action =
   | { type: "CANCEL_TRACE" }
   | { type: "FINISH_TRACE" }
   | { type: "UPDATE_TRACE"; id: string; nodes: readonly Hole[] }
+  | { type: "UPDATE_TRACE_COLOR"; id: string; color: string }
   | { type: "DELETE_TRACE"; id: string }
   | { type: "SET_VIEWPORT"; viewport: Viewport }
   | { type: "CLEAR_ERROR" };
@@ -240,6 +241,7 @@ function createInitialState(): AppState {
 function nextRef(kind: PartKind, parts: readonly Part[]): string {
   const prefix: Record<PartKind, string> = {
     resistor: "R",
+    switch: "SW",
     capacitor: "C",
     capacitor_ceramic: "C",
     capacitor_electrolytic: "C",
@@ -280,6 +282,8 @@ export function makeDefaultPart(kind: PartKind, origin: Hole, rotation: Rotation
   switch (kind) {
     case "resistor":
       return { ...base, ref: "R?", footprint: { type: "inline2", span: 6 } };
+    case "switch":
+      return { ...base, ref: "SW?", footprint: { type: "inline2", span: 2 } };
     case "diode":
       return { ...base, ref: "D?", footprint: { type: "inline2", span: 4 } };
     case "capacitor":
@@ -1119,6 +1123,17 @@ function reducer(state: AppState, action: Action): AppState {
       const junctions = uniqueHoles(action.nodes);
       const withJunctions = insertJunctions(traces, junctions, action.id);
       return commit(state, { ...active.project, traces: withJunctions });
+    }
+    case "UPDATE_TRACE_COLOR": {
+      const active = state.tabs.find((t) => t.id === state.activeTabId);
+      if (!active) return state;
+      const current = active.project.traces.find((t) => t.id === action.id);
+      if (!current) return state;
+      if (current.color === action.color) return state;
+      const traces = active.project.traces.map((t) =>
+        t.id === action.id ? { ...t, color: action.color } : t,
+      );
+      return commit(state, { ...active.project, traces });
     }
     case "DELETE_TRACE": {
       const active = state.tabs.find((t) => t.id === state.activeTabId);

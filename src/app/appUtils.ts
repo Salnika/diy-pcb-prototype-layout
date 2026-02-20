@@ -18,6 +18,8 @@ function refPrefix(kind: PartKind): string {
   switch (kind) {
     case "resistor":
       return "R";
+    case "switch":
+      return "SW";
     case "capacitor":
     case "capacitor_ceramic":
     case "capacitor_electrolytic":

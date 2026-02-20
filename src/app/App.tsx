@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { computeNetIndex, holeKey, netColor } from "../model";
 import { BoardView } from "../features/board/BoardView";
 import { featureFlags } from "./featureFlags";
 import { AppHeader } from "./components/AppHeader";
@@ -62,6 +63,23 @@ export function App() {
   const selectedPartFixed =
     !!selectedPart && state.project.layoutConstraints.fixedPartIds.includes(selectedPart.id);
   const board = state.project.board;
+  const netIndex = useMemo(() => computeNetIndex(state.project), [state.project]);
+  const selectedTraceNetName = useMemo(() => {
+    if (!selectedTrace) return null;
+    const first = selectedTrace.nodes[0];
+    if (!first) return null;
+    const netId = netIndex.holeToNetId.get(holeKey(first));
+    if (!netId) return null;
+    return netIndex.netIdToName.get(netId) ?? null;
+  }, [netIndex.holeToNetId, netIndex.netIdToName, selectedTrace]);
+  const selectedTraceDisplayColor = useMemo(() => {
+    if (!selectedTrace) return null;
+    if (selectedTrace.color) return selectedTrace.color;
+    const first = selectedTrace.nodes[0];
+    const netId = first ? netIndex.holeToNetId.get(holeKey(first)) ?? selectedTrace.id : selectedTrace.id;
+    const netName = netIndex.netIdToName.get(netId);
+    return netColor(netId, netName);
+  }, [netIndex.holeToNetId, netIndex.netIdToName, selectedTrace]);
 
   function updateBoardSize(nextWidth: number, nextHeight: number) {
     dispatch({
@@ -121,6 +139,8 @@ export function App() {
           selectedNetLabel={selectedNetLabel}
           selectedNet={selectedNet}
           selectedPartFixed={selectedPartFixed}
+          selectedTraceNetName={selectedTraceNetName}
+          selectedTraceDisplayColor={selectedTraceDisplayColor}
           projectParts={state.project.parts}
           projectNets={state.project.netlist}
           fixedPartCount={state.project.layoutConstraints.fixedPartIds.length}

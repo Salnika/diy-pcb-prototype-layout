@@ -422,3 +422,41 @@ export const netTerminalMeta = style({
   color: vars.color.mutedText,
   fontSize: 11,
 });
+
+export const traceColorRow = style({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: vars.space.sm,
+});
+
+export const traceColorButton = style({
+  width: 26,
+  height: 26,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 999,
+  border: `1px solid ${vars.color.border}`,
+  background: vars.color.surface2,
+  cursor: "pointer",
+  padding: 0,
+  ":hover": {
+    background: "rgba(255,255,255,0.05)",
+  },
+});
+
+export const traceColorDot = style({
+  width: 14,
+  height: 14,
+  borderRadius: 999,
+  border: "1px solid rgba(255,255,255,0.55)",
+});
+
+export const traceColorInput = style({
+  position: "absolute",
+  width: 1,
+  height: 1,
+  opacity: 0,
+  pointerEvents: "none",
+});

@@ -63,6 +63,7 @@ export type Footprint =
 
 export type PartKind =
   | "resistor"
+  | "switch"
   | "diode"
   | "capacitor"
   | "capacitor_ceramic"
@@ -94,6 +95,7 @@ export type Trace = Readonly<{
   kind: TraceKind;
   layer: Layer;
   nodes: readonly Hole[];
+  color?: string;
 }>;
 
 export type NetTerminalPin = Readonly<{

@@ -139,6 +139,7 @@ function parsePart(value: unknown, index: number): Part {
     value.kind,
     [
       "resistor",
+      "switch",
       "diode",
       "capacitor",
       "capacitor_ceramic",
@@ -167,13 +168,14 @@ function parseTrace(value: unknown, index: number): Trace {
   const id = expectString(value.id, `${path}.id`);
   const kind = expectOneOf(value.kind, ["wire", "jumper"] as const, `${path}.kind`);
   const layer = expectOneOf(value.layer, ["top", "bottom"] as const, `${path}.layer`);
+  const color = expectOptionalString(value.color, `${path}.color`);
   const nodesRaw = value.nodes;
   if (!Array.isArray(nodesRaw)) throw new Error(`${path}.nodes must be an array`);
   const nodes = nodesRaw.map((n, i) => {
     if (!isObject(n) || !isHole(n)) throw new Error(`${path}.nodes[${i}] must be a hole`);
     return n;
   });
-  return { id, kind, layer, nodes };
+  return { id, kind, layer, nodes, color };
 }
 
 function parseNetLabel(value: unknown, index: number): NetLabel {

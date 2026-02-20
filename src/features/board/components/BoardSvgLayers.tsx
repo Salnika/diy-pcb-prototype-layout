@@ -206,7 +206,7 @@ export function TraceLayer({
         const isSelected = selection.type === "trace" && selection.id === trace.id;
         const netId = traceNetId(trace);
         const name = netId ? netIndex.netIdToName.get(netId) : undefined;
-        const color = netColor(netId ?? trace.id, name);
+        const color = trace.color ?? netColor(netId ?? trace.id, name);
         const isHot = activeNetId && netId === activeNetId;
         const canHit = tool.type === "select" || tool.type === "erase";
         const showHandles = tool.type === "select" && isSelected && trace.nodes.length >= 2;

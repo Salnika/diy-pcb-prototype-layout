@@ -45,6 +45,7 @@ describe("appUtils", () => {
     const part = makeInline2Part({ id: "p1", ref: "R99", kind: "resistor", value: "10k", origin: { x: 2, y: 2 } });
     const expectations = {
       resistor: "R99",
+      switch: "SW99",
       capacitor: "C99",
       capacitor_ceramic: "C99",
       capacitor_electrolytic: "C99",

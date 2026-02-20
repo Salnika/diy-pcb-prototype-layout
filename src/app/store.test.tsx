@@ -96,11 +96,16 @@ describe("store", () => {
       dispatch()({ type: "START_TRACE", kind: "wire", start: { x: 1, y: 1 } });
       dispatch()({ type: "ADD_TRACE_NODE", hole: { x: 2, y: 1 } });
       dispatch()({ type: "FINISH_TRACE" });
+    });
+    const traceId = state().project.traces[0]?.id;
+    act(() => {
+      if (traceId) dispatch()({ type: "UPDATE_TRACE_COLOR", id: traceId, color: "#ff5500" });
       dispatch()({ type: "SET_VIEWPORT", viewport: { scale: 2, pan: { x: 10, y: 20 } } });
     });
 
     expect(state().project.traces.length).toBe(1);
     expect(state().project.traces[0]?.nodes).toEqual([{ x: 1, y: 1 }, { x: 2, y: 1 }]);
+    expect(state().project.traces[0]?.color).toBe("#ff5500");
     expect(state().ui.viewport).toEqual({ scale: 2, pan: { x: 10, y: 20 } });
   });
 

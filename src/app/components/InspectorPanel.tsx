@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { alphaLabel } from "../../model";
 import type { Board, Net, NetLabel, Part, Trace } from "../../model";
 import type { Dispatch } from "react";
@@ -21,6 +22,8 @@ type InspectorPanelProps = Readonly<{
   selectedNetLabel: NetLabel | null;
   selectedNet: Net | null;
   selectedPartFixed: boolean;
+  selectedTraceNetName: string | null;
+  selectedTraceDisplayColor: string | null;
   projectParts: readonly Part[];
   projectNets: readonly Net[];
   fixedPartCount: number;
@@ -53,6 +56,8 @@ export function InspectorPanel({
   selectedNetLabel,
   selectedNet,
   selectedPartFixed,
+  selectedTraceNetName,
+  selectedTraceDisplayColor,
   projectParts,
   projectNets,
   fixedPartCount,
@@ -62,6 +67,8 @@ export function InspectorPanel({
   onUpdateBoardSize,
   onToggleBoardLabeling,
 }: InspectorPanelProps) {
+  const traceColorInputRef = useRef<HTMLInputElement | null>(null);
+
   return (
     <aside className={`${styles.rightPane} ${collapsed ? styles.rightPaneCollapsed : ""}`}>
       <div className={styles.inspectorHeader}>
@@ -309,6 +316,34 @@ export function InspectorPanel({
               <span className={styles.chip}>
                 Trace: {selectedTrace.kind} — {selectedTrace.nodes.length} nodes
               </span>
+              <div className={styles.traceColorRow}>
+                <span className={styles.label}>Net: {selectedTraceNetName ?? "—"}</span>
+                <button
+                  type="button"
+                  className={styles.traceColorButton}
+                  onClick={() => traceColorInputRef.current?.click()}
+                  aria-label="Choisir la couleur du câble"
+                  title="Couleur du câble"
+                >
+                  <span
+                    className={styles.traceColorDot}
+                    style={{ backgroundColor: selectedTraceDisplayColor ?? "#6ea8fe" }}
+                  />
+                </button>
+                <input
+                  ref={traceColorInputRef}
+                  type="color"
+                  value={selectedTrace.color ?? selectedTraceDisplayColor ?? "#6ea8fe"}
+                  className={styles.traceColorInput}
+                  onChange={(event) =>
+                    dispatch({
+                      type: "UPDATE_TRACE_COLOR",
+                      id: selectedTrace.id,
+                      color: event.target.value,
+                    })
+                  }
+                />
+              </div>
               <button
                 type="button"
                 className={styles.dangerButton}

@@ -11,9 +11,13 @@ function pins(...entries: Array<[string, string, number, number]>): PinGeometry[
 }
 
 describe("buildSchematicSymbol", () => {
-  it("builds inline 2 symbols (resistor, diode, capacitor) with custom pin labels", () => {
+  it("builds inline 2 symbols (resistor, switch, diode, capacitor) with custom pin labels", () => {
     const resistor = buildSchematicSymbol(
       makeInline2Part({ id: "p1", ref: "R1", kind: "resistor" }),
+      pins(["1", "A", 0, 0], ["2", "B", 20, 0]),
+    );
+    const sw = buildSchematicSymbol(
+      makeInline2Part({ id: "p0", ref: "SW1", kind: "switch" }),
       pins(["1", "A", 0, 0], ["2", "B", 20, 0]),
     );
     const diode = buildSchematicSymbol(
@@ -26,6 +30,8 @@ describe("buildSchematicSymbol", () => {
     );
 
     expect(resistor.primitives.some((p) => p.type === "polyline")).toBe(true);
+    expect(sw.primitives.some((p) => p.type === "circle")).toBe(true);
+    expect(sw.primitives.filter((p) => p.type === "line").length).toBeGreaterThanOrEqual(4);
     expect(diode.primitives.some((p) => p.type === "polygon")).toBe(true);
     expect(capacitor.primitives.filter((p) => p.type === "line").length).toBeGreaterThanOrEqual(4);
     expect(resistor.texts.map((t) => t.text)).toEqual(expect.arrayContaining(["A", "B"]));

@@ -5,6 +5,7 @@ import { makeInline2Part } from "../../test/fixtures";
 describe("boardPlacement", () => {
   it("detects inline2 kinds", () => {
     expect(isInline2Kind("resistor")).toBe(true);
+    expect(isInline2Kind("switch")).toBe(true);
     expect(isInline2Kind("capacitor_film")).toBe(true);
     expect(isInline2Kind("transistor")).toBe(false);
   });

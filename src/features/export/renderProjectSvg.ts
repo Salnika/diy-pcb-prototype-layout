@@ -72,7 +72,7 @@ function renderTrace(trace: Trace, netIndex: ReturnType<typeof computeNetIndex>)
   const first = trace.nodes[0];
   const netId = first ? netIndex.holeToNetId.get(holeKey(first)) ?? trace.id : trace.id;
   const name = netIndex.netIdToName.get(netId);
-  const color = netColor(netId, name);
+  const color = trace.color ?? netColor(netId, name);
 
   return `<polyline points="${esc(pointsAttr(trace.nodes))}" style="fill:none;stroke:${color};stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;opacity:0.95" />`;
 }
