@@ -129,9 +129,14 @@ export function BoardBackdropLayer({
 type BoardHolesLayerProps = Readonly<{
   holes: readonly Hole[];
   hoverHole: Hole | null;
+  selection: Selection;
 }>;
 
-export function BoardHolesLayer({ holes, hoverHole }: BoardHolesLayerProps) {
+export function BoardHolesLayer({ holes, hoverHole, selection }: BoardHolesLayerProps) {
+  const idle = selection.type === "none";
+  const holeRadius = idle ? 1.9 : 2.2;
+  const hoverRadius = idle ? 2.9 : 3.2;
+
   return (
     <>
       {holes.map((hole) => {
@@ -142,7 +147,7 @@ export function BoardHolesLayer({ holes, hoverHole }: BoardHolesLayerProps) {
             key={`${hole.x},${hole.y}`}
             cx={center.x}
             cy={center.y}
-            r={isHover ? 3.2 : 2.2}
+            r={isHover ? hoverRadius : holeRadius}
             className={isHover ? styles.holeHover : styles.hole}
             pointerEvents="none"
           />

@@ -179,7 +179,7 @@ export function BoardView() {
 
             <ConnectDraftMarker hole={interactions.connectDraftHole} />
 
-            <BoardHolesLayer holes={holes} hoverHole={state.ui.hoverHole} />
+            <BoardHolesLayer holes={holes} hoverHole={state.ui.hoverHole} selection={selection} />
           </g>
         </svg>
       </div>

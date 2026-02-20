@@ -231,8 +231,33 @@ export function useBoardInteractions({
     }
   }, [connectDraft, tool.type]);
 
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const preventWheelDefault = (event: WheelEvent) => {
+      event.preventDefault();
+    };
+    const preventGestureDefault = (event: Event) => {
+      event.preventDefault();
+    };
+
+    svg.addEventListener("wheel", preventWheelDefault, { passive: false });
+    svg.addEventListener("gesturestart", preventGestureDefault, { passive: false });
+    svg.addEventListener("gesturechange", preventGestureDefault, { passive: false });
+    svg.addEventListener("gestureend", preventGestureDefault, { passive: false });
+
+    return () => {
+      svg.removeEventListener("wheel", preventWheelDefault);
+      svg.removeEventListener("gesturestart", preventGestureDefault);
+      svg.removeEventListener("gesturechange", preventGestureDefault);
+      svg.removeEventListener("gestureend", preventGestureDefault);
+    };
+  }, []);
+
   function onWheel(event: React.WheelEvent<SVGSVGElement>) {
     event.preventDefault();
+    event.stopPropagation();
     const svg = svgRef.current;
     if (!svg) return;
     const point = svgPointFromEvent(svg, event.nativeEvent);
