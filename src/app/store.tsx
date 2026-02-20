@@ -285,7 +285,7 @@ export function makeDefaultPart(kind: PartKind, origin: Hole): Part {
     case "transistor":
       return { ...base, ref: "Q?", footprint: { type: "to92_inline3" } };
     case "potentiometer":
-      return { ...base, ref: "RV?", footprint: { type: "to92_inline3", pinNames: ["A", "W", "B"] } };
+      return { ...base, ref: "RV?", footprint: { type: "to92_inline3", pinNames: ["1", "2", "3"] } };
     case "jack":
       return { ...base, ref: "J?", footprint: { type: "to92_inline3", pinNames: ["T", "R", "S"] } };
     case "power_pos":

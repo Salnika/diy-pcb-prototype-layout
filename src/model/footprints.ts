@@ -39,8 +39,21 @@ function inline2(span: number, pinLabels?: readonly [string, string]): readonly 
   ];
 }
 
-function to92Inline3(pinNames?: readonly [string, string, string]): readonly PinDef[] {
-  const names = pinNames ?? ["E", "B", "C"];
+function defaultTo92PinNames(kind: Part["kind"]): readonly [string, string, string] {
+  switch (kind) {
+    case "transistor":
+      return ["E", "B", "C"];
+    case "potentiometer":
+      return ["1", "2", "3"];
+    case "jack":
+      return ["T", "R", "S"];
+    default:
+      return ["1", "2", "3"];
+  }
+}
+
+function to92Inline3(kind: Part["kind"], pinNames?: readonly [string, string, string]): readonly PinDef[] {
+  const names = pinNames ?? defaultTo92PinNames(kind);
   return [
     { pinId: "1", pinLabel: names[0] ?? "1", dx: 0, dy: 0 },
     { pinId: "2", pinLabel: names[1] ?? "2", dx: 1, dy: 0 },
@@ -89,7 +102,7 @@ export function getPartPins(part: Part): readonly PinRef[] {
       pins = inline2(part.footprint.span, part.footprint.pinLabels);
       break;
     case "to92_inline3":
-      pins = to92Inline3(part.footprint.pinNames);
+      pins = to92Inline3(part.kind, part.footprint.pinNames);
       break;
     case "free2":
       pins = free2(part.footprint.dx, part.footprint.dy, part.footprint.pinLabels);

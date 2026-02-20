@@ -31,6 +31,19 @@ type InspectorPanelProps = Readonly<{
   onToggleBoardLabeling: () => void;
 }>;
 
+function defaultTo92PinNames(kind: Part["kind"]): readonly [string, string, string] {
+  switch (kind) {
+    case "transistor":
+      return ["E", "B", "C"];
+    case "potentiometer":
+      return ["1", "2", "3"];
+    case "jack":
+      return ["T", "R", "S"];
+    default:
+      return ["1", "2", "3"];
+  }
+}
+
 export function InspectorPanel({
   collapsed,
   board,
@@ -225,10 +238,11 @@ export function InspectorPanel({
               {selectedPart.footprint.type === "to92_inline3"
                 ? (() => {
                     const pinNames = selectedPart.footprint.pinNames;
+                    const defaults = defaultTo92PinNames(selectedPart.kind);
                     const current: [string, string, string] = [
-                      pinNames?.[0] ?? "E",
-                      pinNames?.[1] ?? "B",
-                      pinNames?.[2] ?? "C",
+                      pinNames?.[0] ?? defaults[0],
+                      pinNames?.[1] ?? defaults[1],
+                      pinNames?.[2] ?? defaults[2],
                     ];
 
                     return (
