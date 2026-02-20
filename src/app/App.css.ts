@@ -247,6 +247,78 @@ export const smallButton = style({
   ":hover": { background: "rgba(255,255,255,0.05)" },
 });
 
+export const iconButton = style([
+  smallButton,
+  {
+    width: 34,
+    height: 34,
+    padding: 0,
+  },
+]);
+
+export const topActionIcon = style({
+  width: 16,
+  height: 16,
+  stroke: "currentColor",
+  fill: "none",
+  strokeWidth: 1.8,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+});
+
+export const dropdownRoot = style({
+  position: "relative",
+});
+
+export const dropdownTrigger = style([
+  smallButton,
+  {
+    listStyle: "none",
+    selectors: {
+      "&::-webkit-details-marker": { display: "none" },
+      "&::marker": { content: '""' },
+    },
+  },
+]);
+
+export const dropdownChevron = style({
+  fontSize: 11,
+  lineHeight: 1,
+});
+
+export const dropdownMenu = style({
+  position: "absolute",
+  top: "calc(100% + 6px)",
+  right: 0,
+  minWidth: 120,
+  display: "grid",
+  gap: vars.space.xs,
+  padding: vars.space.xs,
+  borderRadius: vars.radius.md,
+  border: `1px solid ${vars.color.border}`,
+  background: vars.color.surface,
+  boxShadow: vars.shadow.sm,
+  zIndex: 30,
+});
+
+export const dropdownItem = style({
+  display: "flex",
+  width: "100%",
+  alignItems: "center",
+  justifyContent: "flex-start",
+  padding: "8px 10px",
+  borderRadius: vars.radius.sm,
+  border: `1px solid transparent`,
+  background: "transparent",
+  color: vars.color.text,
+  cursor: "pointer",
+  fontSize: 12,
+  ":hover": {
+    background: "rgba(255,255,255,0.05)",
+    borderColor: vars.color.border,
+  },
+});
+
 export const smallButtonActive = style([
   smallButton,
   {

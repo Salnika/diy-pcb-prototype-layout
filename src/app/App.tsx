@@ -71,12 +71,6 @@ export function App() {
     });
   }
 
-  function handleNewProject() {
-    const ok = window.confirm("Créer un nouveau projet ? (le projet actuel restera en autosave)");
-    if (!ok) return;
-    dispatch({ type: "NEW_PROJECT" });
-  }
-
   function handleRunAutoLayout() {
     const ok = window.confirm(
       "Auto-layout: optimisation du placement et régénération des traces à partir des connexions. Continuer ?",
@@ -92,7 +86,6 @@ export function App() {
         canRedo={canRedo}
         showAutoLayout={showAutoLayout}
         lastError={state.ui.lastError}
-        onNewProject={handleNewProject}
         onUndo={() => dispatch({ type: "UNDO" })}
         onRedo={() => dispatch({ type: "REDO" })}
         onRunAutoLayout={handleRunAutoLayout}
