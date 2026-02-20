@@ -39,6 +39,8 @@ export function holeFromWorld(world: { x: number; y: number }, board: Board): Ho
   if (localX >= maxX || localY >= maxY) return null;
   const x = Math.floor(localX / PITCH_PX);
   const y = Math.floor(localY / PITCH_PX);
+  // Defensive guard kept for malformed board values; normal integer boards are filtered by bounds above.
+  /* v8 ignore next */
   if (x < 0 || y < 0 || x >= board.width || y >= board.height) return null;
   return { x, y };
 }
