@@ -35,6 +35,7 @@ export function App() {
 
   useAppKeyboardShortcuts({
     dispatch,
+    tool,
     selection,
     traceDraft,
     parts: state.project.parts,

@@ -25,6 +25,7 @@ describe("useAppKeyboardShortcuts", () => {
     renderHook(() =>
       useAppKeyboardShortcuts({
         dispatch,
+        tool: { type: "select" },
         selection: { type: "none" },
         traceDraft: null,
         parts: [],
@@ -41,6 +42,7 @@ describe("useAppKeyboardShortcuts", () => {
     renderHook(() =>
       useAppKeyboardShortcuts({
         dispatch,
+        tool: { type: "select" },
         selection: { type: "none" },
         traceDraft: null,
         parts: [],
@@ -63,6 +65,7 @@ describe("useAppKeyboardShortcuts", () => {
     renderHook(() =>
       useAppKeyboardShortcuts({
         dispatch,
+        tool: { type: "select" },
         selection: { type: "none" },
         traceDraft,
         parts: [],
@@ -80,6 +83,7 @@ describe("useAppKeyboardShortcuts", () => {
     renderHook(() =>
       useAppKeyboardShortcuts({
         dispatch,
+        tool: { type: "select" },
         selection: { type: "part", id: "p1" },
         traceDraft: null,
         parts: [],
@@ -94,15 +98,20 @@ describe("useAppKeyboardShortcuts", () => {
   it("handles deletion and trace pop", () => {
     const dispatch = vi.fn();
     const { rerender } = renderHook(
-      (props: { selection: any; traceDraft: any }) =>
+      (props: { tool: any; selection: any; traceDraft: any }) =>
         useAppKeyboardShortcuts({
           dispatch,
+          tool: props.tool,
           selection: props.selection,
           traceDraft: props.traceDraft,
           parts: [],
         }),
       {
-        initialProps: { selection: { type: "none" }, traceDraft: { kind: "wire", layer: "bottom", nodes: [{ x: 0, y: 0 }] } },
+        initialProps: {
+          tool: { type: "select" },
+          selection: { type: "none" },
+          traceDraft: { kind: "wire", layer: "bottom", nodes: [{ x: 0, y: 0 }] },
+        },
       },
     );
 
@@ -110,13 +119,13 @@ describe("useAppKeyboardShortcuts", () => {
     expect(ev.defaultPrevented).toBe(true);
     expect(dispatch).toHaveBeenCalledWith({ type: "POP_TRACE_NODE" });
 
-    rerender({ selection: { type: "part", id: "p1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "part", id: "p1" }, traceDraft: null });
     dispatchKey("Delete");
-    rerender({ selection: { type: "trace", id: "t1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "trace", id: "t1" }, traceDraft: null });
     dispatchKey("Delete");
-    rerender({ selection: { type: "netLabel", id: "nl1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "netLabel", id: "nl1" }, traceDraft: null });
     dispatchKey("Backspace");
-    rerender({ selection: { type: "net", id: "n1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "net", id: "n1" }, traceDraft: null });
     dispatchKey("Delete");
 
     expect(dispatch).toHaveBeenCalledWith({ type: "DELETE_PART", id: "p1" });
@@ -129,14 +138,15 @@ describe("useAppKeyboardShortcuts", () => {
     const dispatch = vi.fn();
     const part = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 }, rotation: 0 });
     const { rerender } = renderHook(
-      (props: { selection: any; parts: any[] }) =>
+      (props: { tool: any; selection: any; parts: any[] }) =>
         useAppKeyboardShortcuts({
           dispatch,
+          tool: props.tool,
           selection: props.selection,
           traceDraft: null,
           parts: props.parts,
         }),
-      { initialProps: { selection: { type: "part", id: "p1" }, parts: [part] } },
+      { initialProps: { tool: { type: "select" }, selection: { type: "part", id: "p1" }, parts: [part] } },
     );
     dispatchKey("r");
     expect(dispatch).toHaveBeenCalledWith(
@@ -146,9 +156,29 @@ describe("useAppKeyboardShortcuts", () => {
       }),
     );
 
-    rerender({ selection: { type: "part", id: "missing" }, parts: [part] });
+    rerender({ tool: { type: "select" }, selection: { type: "part", id: "missing" }, parts: [part] });
     dispatchKey("r");
     expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("rotates placePart ghost on R before placement", () => {
+    const dispatch = vi.fn();
+    const part = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 }, rotation: 0 });
+    renderHook(() =>
+      useAppKeyboardShortcuts({
+        dispatch,
+        tool: { type: "placePart", kind: "resistor" },
+        selection: { type: "part", id: "p1" },
+        traceDraft: null,
+        parts: [part],
+      }),
+    );
+
+    dispatchKey("r");
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "SET_TOOL",
+      tool: { type: "placePart", kind: "resistor", rotation: 90 },
+    });
   });
 
   it("switches tool with one-key shortcuts", () => {
@@ -156,6 +186,7 @@ describe("useAppKeyboardShortcuts", () => {
     renderHook(() =>
       useAppKeyboardShortcuts({
         dispatch,
+        tool: { type: "select" },
         selection: { type: "none" },
         traceDraft: null,
         parts: [],
@@ -181,6 +212,7 @@ describe("useAppKeyboardShortcuts", () => {
     renderHook(() =>
       useAppKeyboardShortcuts({
         dispatch,
+        tool: { type: "select" },
         selection: { type: "none" },
         traceDraft: null,
         parts: [],

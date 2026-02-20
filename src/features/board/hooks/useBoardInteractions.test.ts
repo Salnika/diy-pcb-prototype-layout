@@ -110,7 +110,10 @@ describe("useBoardInteractions", () => {
   });
 
   it("places non-inline part on pointer down in placePart mode", () => {
-    const params = { ...baseParams(), tool: { type: "placePart" as const, kind: "transistor" as const } };
+    const params = {
+      ...baseParams(),
+      tool: { type: "placePart" as const, kind: "transistor" as const, rotation: 180 as const },
+    };
     const { result } = renderHook(() => useBoardInteractions(params));
     result.current.svgRef.current = fakeSvg();
     mocks.holeFromWorld.mockReturnValue({ x: 2, y: 3 });
@@ -119,7 +122,12 @@ describe("useBoardInteractions", () => {
       result.current.onPointerDown({ button: 0, pointerId: 1 } as any);
     });
 
-    expect(params.dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: "ADD_PART" }));
+    expect(params.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "ADD_PART",
+        part: expect.objectContaining({ placement: expect.objectContaining({ rotation: 180 }) }),
+      }),
+    );
     expect(params.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ type: "SELECT", selection: expect.objectContaining({ type: "part" }) }),
     );
@@ -239,10 +247,11 @@ describe("useBoardInteractions", () => {
   it("computes ghost part for placePart tool with hover hole", () => {
     const params = {
       ...baseParams(),
-      tool: { type: "placePart" as const, kind: "resistor" as const },
+      tool: { type: "placePart" as const, kind: "resistor" as const, rotation: 270 as const },
       hoverHole: { x: 2, y: 2 },
     };
     const { result } = renderHook(() => useBoardInteractions(params));
     expect(result.current.ghostPart).not.toBeNull();
+    expect(result.current.ghostPart?.placement.rotation).toBe(270);
   });
 });

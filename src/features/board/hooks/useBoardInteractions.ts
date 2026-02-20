@@ -308,7 +308,7 @@ export function useBoardInteractions({
         if (placed) resetInline2Draft();
         return;
       }
-      const part = makeDefaultPart(tool.kind, hole);
+      const part = makeDefaultPart(tool.kind, hole, tool.rotation ?? 0);
       dispatch({ type: "ADD_PART", part });
       dispatch({ type: "SELECT", selection: { type: "part", id: part.id } });
       return;
@@ -587,7 +587,7 @@ export function useBoardInteractions({
     if (isInline2Kind(tool.kind) && inline2DraftStart) {
       return createInline2Part(tool.kind, inline2DraftStart, hoverHole);
     }
-    return makeDefaultPart(tool.kind, hoverHole);
+    return makeDefaultPart(tool.kind, hoverHole, tool.rotation ?? 0);
   })();
 
   const tracesToRender = useMemo(() => {

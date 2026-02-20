@@ -50,6 +50,25 @@ describe("store", () => {
     expect(state().ui.selection).toEqual({ type: "none" });
   });
 
+  it("keeps placePart rotation while switching part kinds", () => {
+    const { state, dispatch } = setupStore();
+    act(() => {
+      dispatch()({ type: "SET_TOOL", tool: { type: "placePart", kind: "resistor", rotation: 90 } });
+    });
+    expect(state().ui.tool).toEqual({ type: "placePart", kind: "resistor", rotation: 90 });
+
+    act(() => {
+      dispatch()({ type: "SET_TOOL", tool: { type: "placePart", kind: "diode" } });
+    });
+    expect(state().ui.tool).toEqual({ type: "placePart", kind: "diode", rotation: 90 });
+
+    act(() => {
+      dispatch()({ type: "SET_TOOL", tool: { type: "select" } });
+      dispatch()({ type: "SET_TOOL", tool: { type: "placePart", kind: "capacitor" } });
+    });
+    expect(state().ui.tool).toEqual({ type: "placePart", kind: "capacitor" });
+  });
+
   it("adds parts, auto-numbers refs and supports undo/redo", () => {
     const { state, dispatch } = setupStore();
     act(() => {

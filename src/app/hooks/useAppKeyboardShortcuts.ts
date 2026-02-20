@@ -1,9 +1,12 @@
 import { useEffect, type Dispatch } from "react";
-import type { Part } from "../../model";
-import { rotatePart, type Action, type Selection, type TraceDraft } from "../store";
+import type { Part, Rotation } from "../../model";
+import { rotatePart, type Action, type Selection, type Tool, type TraceDraft } from "../store";
+
+const NEXT_ROTATION: Record<Rotation, Rotation> = { 0: 90, 90: 180, 180: 270, 270: 0 };
 
 type UseAppKeyboardShortcutsParams = Readonly<{
   dispatch: Dispatch<Action>;
+  tool: Tool;
   selection: Selection;
   traceDraft: TraceDraft | null;
   parts: readonly Part[];
@@ -11,6 +14,7 @@ type UseAppKeyboardShortcutsParams = Readonly<{
 
 export function useAppKeyboardShortcuts({
   dispatch,
+  tool,
   selection,
   traceDraft,
   parts,
@@ -66,9 +70,16 @@ export function useAppKeyboardShortcuts({
         return;
       }
 
-      if (ev.key.toLowerCase() === "r" && selection.type === "part") {
-        const part = parts.find((entry) => entry.id === selection.id);
-        if (part) dispatch({ type: "UPDATE_PART", part: rotatePart(part) });
+      if (ev.key.toLowerCase() === "r") {
+        if (tool.type === "placePart") {
+          const rotation = tool.rotation ?? 0;
+          dispatch({ type: "SET_TOOL", tool: { ...tool, rotation: NEXT_ROTATION[rotation] } });
+          return;
+        }
+        if (selection.type === "part") {
+          const part = parts.find((entry) => entry.id === selection.id);
+          if (part) dispatch({ type: "UPDATE_PART", part: rotatePart(part) });
+        }
         return;
       }
 
@@ -99,5 +110,5 @@ export function useAppKeyboardShortcuts({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [dispatch, selection, parts, traceDraft]);
+  }, [dispatch, tool, selection, parts, traceDraft]);
 }

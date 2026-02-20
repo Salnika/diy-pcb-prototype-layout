@@ -31,7 +31,7 @@ import type {
 
 export type Tool =
   | { type: "select" }
-  | { type: "placePart"; kind: PartKind }
+  | { type: "placePart"; kind: PartKind; rotation?: Rotation }
   | { type: "connect" }
   | { type: "fixedPoint" }
   | { type: "wire" }
@@ -172,6 +172,14 @@ function createTab(existing: readonly TabState[], name?: string): TabState {
   return makeTabState(project, projectKey, id);
 }
 
+function normalizeTool(nextTool: Tool, previousTool?: Tool): Tool {
+  if (nextTool.type !== "placePart") return nextTool;
+  const preservedRotation = previousTool?.type === "placePart" ? previousTool.rotation : undefined;
+  const rotation = nextTool.rotation ?? preservedRotation ?? 0;
+  if (rotation === 0) return { type: "placePart", kind: nextTool.kind };
+  return { type: "placePart", kind: nextTool.kind, rotation };
+}
+
 function loadProjectFromStorage(key: string): Project | null {
   const raw = localStorage.getItem(key);
   if (!raw) return null;
@@ -258,8 +266,8 @@ function nextRef(kind: PartKind, parts: readonly Part[]): string {
   return `${p}${max + 1}`;
 }
 
-export function makeDefaultPart(kind: PartKind, origin: Hole): Part {
-  const placement: Placement = { origin, rotation: 0, flip: false };
+export function makeDefaultPart(kind: PartKind, origin: Hole, rotation: Rotation = 0): Part {
+  const placement: Placement = { origin, rotation, flip: false };
   const base = {
     id: createId("p"),
     ref: "",
@@ -694,7 +702,7 @@ function reducer(state: AppState, action: Action): AppState {
         const tab = state.tabs[activeIndex];
         const nextTab: TabState = {
           ...tab,
-          ui: { ...tab.ui, tool: action.tool, traceDraft: null, lastError: null },
+          ui: { ...tab.ui, tool: normalizeTool(action.tool, tab.ui.tool), traceDraft: null, lastError: null },
         };
         const tabs = [...state.tabs];
         tabs[activeIndex] = nextTab;
