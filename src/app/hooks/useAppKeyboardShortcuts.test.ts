@@ -181,6 +181,22 @@ describe("useAppKeyboardShortcuts", () => {
     });
   });
 
+  it("ignores R when no part is selected outside placePart mode", () => {
+    const dispatch = vi.fn();
+    renderHook(() =>
+      useAppKeyboardShortcuts({
+        dispatch,
+        tool: { type: "select" },
+        selection: { type: "none" },
+        traceDraft: null,
+        parts: [],
+      }),
+    );
+
+    dispatchKey("r");
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
   it("switches tool with one-key shortcuts", () => {
     const dispatch = vi.fn();
     renderHook(() =>
