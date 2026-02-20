@@ -285,6 +285,40 @@ describe("useBoardInteractions", () => {
     });
   });
 
+  it("drags an internal trace node (angle/intersection point)", () => {
+    const dispatch = vi.fn();
+    const trace = makeTrace("t2", [{ x: 1, y: 1 }, { x: 1, y: 3 }, { x: 4, y: 3 }]);
+    const params = {
+      ...baseParams(),
+      dispatch,
+      tool: { type: "select" as const },
+      traces: [trace],
+    };
+    const { result } = renderHook(() => useBoardInteractions(params));
+    const svg = fakeSvg();
+    result.current.svgRef.current = svg;
+
+    act(() => {
+      result.current.startTraceNodeDrag(trace, 1, { pointerId: 22 } as any);
+    });
+    expect(svg.setPointerCapture).toHaveBeenCalledWith(22);
+
+    mocks.holeFromWorld.mockReturnValueOnce({ x: 2, y: 2 });
+    act(() => {
+      result.current.onPointerMove({ pointerId: 22 } as any);
+    });
+    expect(result.current.tracesToRender[0]?.nodes).toEqual([{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 4, y: 3 }]);
+
+    act(() => {
+      result.current.onPointerUp({ pointerId: 22 } as any);
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "UPDATE_TRACE",
+      id: "t2",
+      nodes: [{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 4, y: 3 }],
+    });
+  });
+
   it("computes ghost part for placePart tool with hover hole", () => {
     const params = {
       ...baseParams(),

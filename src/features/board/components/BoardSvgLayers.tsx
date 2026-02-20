@@ -175,6 +175,11 @@ type TraceLayerProps = Readonly<{
     segmentIndex: number,
     event: ReactPointerEvent<SVGCircleElement>,
   ) => void;
+  onStartTraceNodeDrag: (
+    trace: Trace,
+    nodeIndex: number,
+    event: ReactPointerEvent<SVGCircleElement>,
+  ) => void;
 }>;
 
 export function TraceLayer({
@@ -187,6 +192,7 @@ export function TraceLayer({
   onSelectTrace,
   onStartTraceDrag,
   onStartTraceSegmentDrag,
+  onStartTraceNodeDrag,
 }: TraceLayerProps) {
   function traceNetId(trace: Trace): string | null {
     const first = trace.nodes[0];
@@ -206,6 +212,12 @@ export function TraceLayer({
         const showHandles = tool.type === "select" && isSelected && trace.nodes.length >= 2;
         const start = trace.nodes[0];
         const end = trace.nodes[trace.nodes.length - 1];
+        const nodeHandles = showHandles
+          ? trace.nodes.slice(1, -1).map((node, index) => ({
+              index: index + 1,
+              center: holeCenterPx(node),
+            }))
+          : [];
         const segmentHandles = showHandles
           ? trace.nodes.slice(0, -1).flatMap((from, index) => {
               const to = trace.nodes[index + 1];
@@ -267,6 +279,19 @@ export function TraceLayer({
                     onPointerDown={(event) => {
                       event.stopPropagation();
                       onStartTraceSegmentDrag(trace, handle.index, event);
+                    }}
+                  />
+                ))}
+                {nodeHandles.map((handle) => (
+                  <circle
+                    key={`node-${trace.id}-${handle.index}`}
+                    cx={handle.center.x}
+                    cy={handle.center.y}
+                    r={5}
+                    className={styles.traceHandle}
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      onStartTraceNodeDrag(trace, handle.index, event);
                     }}
                   />
                 ))}

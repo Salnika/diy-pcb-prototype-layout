@@ -80,6 +80,7 @@ describe("BoardSvgLayers", () => {
     const onSelectTrace = vi.fn();
     const onStartTraceDrag = vi.fn();
     const onStartTraceSegmentDrag = vi.fn();
+    const onStartTraceNodeDrag = vi.fn();
     const trace = makeTrace("t1", [{ x: 0, y: 0 }, { x: 1, y: 0 }]);
     const netIndex = {
       ...emptyNetIndex,
@@ -98,6 +99,7 @@ describe("BoardSvgLayers", () => {
         onSelectTrace={onSelectTrace}
         onStartTraceDrag={onStartTraceDrag}
         onStartTraceSegmentDrag={onStartTraceSegmentDrag}
+        onStartTraceNodeDrag={onStartTraceNodeDrag}
       />,
     );
 
@@ -126,12 +128,39 @@ describe("BoardSvgLayers", () => {
             onSelectTrace={onSelectTrace}
             onStartTraceDrag={onStartTraceDrag}
             onStartTraceSegmentDrag={onStartTraceSegmentDrag}
+            onStartTraceNodeDrag={onStartTraceNodeDrag}
           />
         </g>
       </svg>,
     );
     fireEvent.pointerDown(container.querySelector("polyline")!, { button: 0 });
     expect(onDeleteTrace).toHaveBeenCalledWith("t1");
+  });
+
+  it("exposes internal node handles for selected traces", () => {
+    const onStartTraceDrag = vi.fn();
+    const onStartTraceSegmentDrag = vi.fn();
+    const onStartTraceNodeDrag = vi.fn();
+    const trace = makeTrace("t2", [{ x: 0, y: 0 }, { x: 0, y: 2 }, { x: 2, y: 2 }]);
+
+    const { container } = renderSvg(
+      <TraceLayer
+        traces={[trace]}
+        selection={{ type: "trace", id: "t2" }}
+        tool={{ type: "select" }}
+        activeNetId={null}
+        netIndex={emptyNetIndex}
+        onDeleteTrace={vi.fn()}
+        onSelectTrace={vi.fn()}
+        onStartTraceDrag={onStartTraceDrag}
+        onStartTraceSegmentDrag={onStartTraceSegmentDrag}
+        onStartTraceNodeDrag={onStartTraceNodeDrag}
+      />,
+    );
+
+    const handles = container.querySelectorAll("circle");
+    fireEvent.pointerDown(handles[handles.length - 1]!, { button: 0 });
+    expect(onStartTraceNodeDrag).toHaveBeenCalledWith(trace, 1, expect.anything());
   });
 
   it("renders trace draft with and without hover extension", () => {

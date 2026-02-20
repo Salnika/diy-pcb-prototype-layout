@@ -85,6 +85,11 @@ export function useBoardInteractions({
     traceId: string;
     segmentIndex: number;
   } | null>(null);
+  const traceNodeDragRef = useRef<{
+    pointerId: number;
+    traceId: string;
+    nodeIndex: number;
+  } | null>(null);
   const labelDragRef = useRef<{
     pointerId: number;
     labelId: string;
@@ -266,6 +271,16 @@ export function useBoardInteractions({
     const svg = svgRef.current;
     if (svg) svg.setPointerCapture(event.pointerId);
     traceSegmentDragRef.current = { pointerId: event.pointerId, traceId: trace.id, segmentIndex };
+    setTraceDragPreview(trace);
+    dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
+  }
+
+  function startTraceNodeDrag(trace: Trace, nodeIndex: number, event: ReactPointerEvent<SVGCircleElement>) {
+    if (tool.type !== "select") return;
+    if (nodeIndex <= 0 || nodeIndex >= trace.nodes.length - 1) return;
+    const svg = svgRef.current;
+    if (svg) svg.setPointerCapture(event.pointerId);
+    traceNodeDragRef.current = { pointerId: event.pointerId, traceId: trace.id, nodeIndex };
     setTraceDragPreview(trace);
     dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
   }
@@ -556,6 +571,27 @@ export function useBoardInteractions({
       return;
     }
 
+    const traceNodeDrag = traceNodeDragRef.current;
+    if (traceNodeDrag && traceNodeDrag.pointerId === event.pointerId) {
+      const hole = holeFromPointerEvent(event);
+      if (hole) {
+        const source =
+          traceDragPreview?.id === traceNodeDrag.traceId
+            ? traceDragPreview
+            : traces.find((entry) => entry.id === traceNodeDrag.traceId);
+        if (source && traceNodeDrag.nodeIndex > 0 && traceNodeDrag.nodeIndex < source.nodes.length - 1) {
+          const nextNodes = [...source.nodes];
+          nextNodes[traceNodeDrag.nodeIndex] = hole;
+          const compacted = compactTraceNodes(nextNodes);
+          if (allNodesWithinBoard(compacted)) {
+            setTraceDragPreview({ ...source, nodes: compacted });
+          }
+        }
+      }
+      setHoverFromPointer(event);
+      return;
+    }
+
     const labelDrag = labelDragRef.current;
     if (labelDrag && labelDrag.pointerId === event.pointerId) {
       const world = worldFromPointerEvent(event);
@@ -649,6 +685,16 @@ export function useBoardInteractions({
         dispatch({ type: "UPDATE_TRACE", id: traceSegmentDrag.traceId, nodes: traceDragPreview.nodes });
       }
       traceSegmentDragRef.current = null;
+      setTraceDragPreview(null);
+      return;
+    }
+
+    const traceNodeDrag = traceNodeDragRef.current;
+    if (traceNodeDrag && traceNodeDrag.pointerId === event.pointerId) {
+      if (traceDragPreview && traceDragPreview.id === traceNodeDrag.traceId) {
+        dispatch({ type: "UPDATE_TRACE", id: traceNodeDrag.traceId, nodes: traceDragPreview.nodes });
+      }
+      traceNodeDragRef.current = null;
       setTraceDragPreview(null);
       return;
     }
@@ -760,6 +806,7 @@ export function useBoardInteractions({
     startInline2Stretch,
     startTraceDrag,
     startTraceSegmentDrag,
+    startTraceNodeDrag,
     startLabelDrag,
     startPartDrag,
   };

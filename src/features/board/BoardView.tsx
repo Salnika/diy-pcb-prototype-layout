@@ -150,6 +150,7 @@ export function BoardView() {
               onSelectTrace={(id) => dispatch({ type: "SELECT", selection: { type: "trace", id } })}
               onStartTraceDrag={interactions.startTraceDrag}
               onStartTraceSegmentDrag={interactions.startTraceSegmentDrag}
+              onStartTraceNodeDrag={interactions.startTraceNodeDrag}
             />
 
             <TraceDraftLayer traceDraft={traceDraft} hoverHole={state.ui.hoverHole} tool={tool} />
