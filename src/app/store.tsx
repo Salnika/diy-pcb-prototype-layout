@@ -127,6 +127,7 @@ export type Action =
   | { type: "FINISH_TRACE" }
   | { type: "UPDATE_TRACE"; id: string; nodes: readonly Hole[] }
   | { type: "UPDATE_TRACE_COLOR"; id: string; color: string }
+  | { type: "UPDATE_NET_TRACE_COLOR"; netId: string; color: string }
   | { type: "DELETE_TRACE"; id: string }
   | { type: "SET_VIEWPORT"; viewport: Viewport }
   | { type: "CLEAR_ERROR" };
@@ -1133,6 +1134,23 @@ function reducer(state: AppState, action: Action): AppState {
       const traces = active.project.traces.map((t) =>
         t.id === action.id ? { ...t, color: action.color } : t,
       );
+      return commit(state, { ...active.project, traces });
+    }
+    case "UPDATE_NET_TRACE_COLOR": {
+      const active = state.tabs.find((t) => t.id === state.activeTabId);
+      if (!active) return state;
+      const netIndex = computeNetIndex(active.project);
+      let changed = false;
+      const traces = active.project.traces.map((trace) => {
+        const first = trace.nodes[0];
+        if (!first) return trace;
+        const traceNetId = netIndex.holeToNetId.get(holeKey(first));
+        if (traceNetId !== action.netId) return trace;
+        if (trace.color === action.color) return trace;
+        changed = true;
+        return { ...trace, color: action.color };
+      });
+      if (!changed) return state;
       return commit(state, { ...active.project, traces });
     }
     case "DELETE_TRACE": {

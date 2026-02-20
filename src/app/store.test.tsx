@@ -1,6 +1,7 @@
 import { act, render, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import React from "react";
+import { computeNetIndex, holeKey } from "../model";
 import { AppStoreProvider, makeDefaultPart, rotatePart, useAppDispatch, useAppState } from "./store";
 
 function setupStore() {
@@ -107,6 +108,47 @@ describe("store", () => {
     expect(state().project.traces[0]?.nodes).toEqual([{ x: 1, y: 1 }, { x: 2, y: 1 }]);
     expect(state().project.traces[0]?.color).toBe("#ff5500");
     expect(state().ui.viewport).toEqual({ scale: 2, pan: { x: 10, y: 20 } });
+  });
+
+  it("updates color for all traces connected to the same net", () => {
+    const { state, dispatch } = setupStore();
+
+    act(() => {
+      dispatch()({ type: "START_TRACE", kind: "wire", start: { x: 1, y: 1 } });
+      dispatch()({ type: "ADD_TRACE_NODE", hole: { x: 2, y: 1 } });
+      dispatch()({ type: "FINISH_TRACE" });
+
+      dispatch()({ type: "START_TRACE", kind: "wire", start: { x: 2, y: 1 } });
+      dispatch()({ type: "ADD_TRACE_NODE", hole: { x: 3, y: 1 } });
+      dispatch()({ type: "FINISH_TRACE" });
+
+      dispatch()({ type: "START_TRACE", kind: "wire", start: { x: 10, y: 10 } });
+      dispatch()({ type: "ADD_TRACE_NODE", hole: { x: 11, y: 10 } });
+      dispatch()({ type: "FINISH_TRACE" });
+    });
+
+    const netIndex = computeNetIndex(state().project);
+    const netId = netIndex.holeToNetId.get(holeKey({ x: 1, y: 1 }));
+    expect(netId).toBeTruthy();
+    if (!netId) return;
+
+    act(() => {
+      dispatch()({ type: "UPDATE_NET_TRACE_COLOR", netId, color: "#22cc88" });
+    });
+
+    const firstConnected = state().project.traces.find(
+      (trace) => trace.nodes[0]?.x === 1 && trace.nodes[0]?.y === 1,
+    );
+    const secondConnected = state().project.traces.find(
+      (trace) => trace.nodes[0]?.x === 2 && trace.nodes[0]?.y === 1,
+    );
+    const disconnected = state().project.traces.find(
+      (trace) => trace.nodes[0]?.x === 10 && trace.nodes[0]?.y === 10,
+    );
+
+    expect(firstConnected?.color).toBe("#22cc88");
+    expect(secondConnected?.color).toBe("#22cc88");
+    expect(disconnected?.color).toBeUndefined();
   });
 
   it("handles errors and board constraints", () => {

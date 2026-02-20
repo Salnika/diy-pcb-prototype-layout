@@ -64,22 +64,23 @@ export function App() {
     !!selectedPart && state.project.layoutConstraints.fixedPartIds.includes(selectedPart.id);
   const board = state.project.board;
   const netIndex = useMemo(() => computeNetIndex(state.project), [state.project]);
-  const selectedTraceNetName = useMemo(() => {
+  const selectedTraceNetId = useMemo(() => {
     if (!selectedTrace) return null;
     const first = selectedTrace.nodes[0];
     if (!first) return null;
-    const netId = netIndex.holeToNetId.get(holeKey(first));
-    if (!netId) return null;
-    return netIndex.netIdToName.get(netId) ?? null;
-  }, [netIndex.holeToNetId, netIndex.netIdToName, selectedTrace]);
+    return netIndex.holeToNetId.get(holeKey(first)) ?? null;
+  }, [netIndex.holeToNetId, selectedTrace]);
+  const selectedTraceNetName = useMemo(() => {
+    if (!selectedTraceNetId) return null;
+    return netIndex.netIdToName.get(selectedTraceNetId) ?? null;
+  }, [netIndex.netIdToName, selectedTraceNetId]);
   const selectedTraceDisplayColor = useMemo(() => {
     if (!selectedTrace) return null;
     if (selectedTrace.color) return selectedTrace.color;
-    const first = selectedTrace.nodes[0];
-    const netId = first ? netIndex.holeToNetId.get(holeKey(first)) ?? selectedTrace.id : selectedTrace.id;
+    const netId = selectedTraceNetId ?? selectedTrace.id;
     const netName = netIndex.netIdToName.get(netId);
     return netColor(netId, netName);
-  }, [netIndex.holeToNetId, netIndex.netIdToName, selectedTrace]);
+  }, [netIndex.netIdToName, selectedTrace, selectedTraceNetId]);
 
   function updateBoardSize(nextWidth: number, nextHeight: number) {
     dispatch({
@@ -139,6 +140,7 @@ export function App() {
           selectedNetLabel={selectedNetLabel}
           selectedNet={selectedNet}
           selectedPartFixed={selectedPartFixed}
+          selectedTraceNetId={selectedTraceNetId}
           selectedTraceNetName={selectedTraceNetName}
           selectedTraceDisplayColor={selectedTraceDisplayColor}
           projectParts={state.project.parts}

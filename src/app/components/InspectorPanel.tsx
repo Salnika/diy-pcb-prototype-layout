@@ -22,6 +22,7 @@ type InspectorPanelProps = Readonly<{
   selectedNetLabel: NetLabel | null;
   selectedNet: Net | null;
   selectedPartFixed: boolean;
+  selectedTraceNetId: string | null;
   selectedTraceNetName: string | null;
   selectedTraceDisplayColor: string | null;
   projectParts: readonly Part[];
@@ -56,6 +57,7 @@ export function InspectorPanel({
   selectedNetLabel,
   selectedNet,
   selectedPartFixed,
+  selectedTraceNetId,
   selectedTraceNetName,
   selectedTraceDisplayColor,
   projectParts,
@@ -335,13 +337,22 @@ export function InspectorPanel({
                   type="color"
                   value={selectedTrace.color ?? selectedTraceDisplayColor ?? "#6ea8fe"}
                   className={styles.traceColorInput}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const color = event.target.value;
+                    if (selectedTraceNetId) {
+                      dispatch({
+                        type: "UPDATE_NET_TRACE_COLOR",
+                        netId: selectedTraceNetId,
+                        color,
+                      });
+                      return;
+                    }
                     dispatch({
                       type: "UPDATE_TRACE_COLOR",
                       id: selectedTrace.id,
-                      color: event.target.value,
-                    })
-                  }
+                      color,
+                    });
+                  }}
                 />
               </div>
               <button
