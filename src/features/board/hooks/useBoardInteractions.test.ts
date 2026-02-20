@@ -244,6 +244,45 @@ describe("useBoardInteractions", () => {
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: "UPDATE_PART" }));
   });
 
+  it("drags a trace segment from the middle and creates a natural dogleg", () => {
+    const dispatch = vi.fn();
+    const trace = makeTrace("t1", [{ x: 1, y: 1 }, { x: 4, y: 1 }]);
+    const params = {
+      ...baseParams(),
+      dispatch,
+      tool: { type: "select" as const },
+      traces: [trace],
+    };
+    const { result } = renderHook(() => useBoardInteractions(params));
+    const svg = fakeSvg();
+    result.current.svgRef.current = svg;
+
+    act(() => {
+      result.current.startTraceSegmentDrag(trace, 0, { pointerId: 21 } as any);
+    });
+    expect(svg.setPointerCapture).toHaveBeenCalledWith(21);
+
+    mocks.holeFromWorld.mockReturnValueOnce({ x: 3, y: 3 });
+    act(() => {
+      result.current.onPointerMove({ pointerId: 21 } as any);
+    });
+    expect(result.current.tracesToRender[0]?.nodes).toEqual([
+      { x: 1, y: 1 },
+      { x: 1, y: 3 },
+      { x: 4, y: 3 },
+      { x: 4, y: 1 },
+    ]);
+
+    act(() => {
+      result.current.onPointerUp({ pointerId: 21 } as any);
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "UPDATE_TRACE",
+      id: "t1",
+      nodes: [{ x: 1, y: 1 }, { x: 1, y: 3 }, { x: 4, y: 3 }, { x: 4, y: 1 }],
+    });
+  });
+
   it("computes ghost part for placePart tool with hover hole", () => {
     const params = {
       ...baseParams(),

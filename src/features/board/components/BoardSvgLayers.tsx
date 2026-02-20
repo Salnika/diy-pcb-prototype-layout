@@ -170,6 +170,11 @@ type TraceLayerProps = Readonly<{
     endpoint: "start" | "end",
     event: ReactPointerEvent<SVGCircleElement>,
   ) => void;
+  onStartTraceSegmentDrag: (
+    trace: Trace,
+    segmentIndex: number,
+    event: ReactPointerEvent<SVGCircleElement>,
+  ) => void;
 }>;
 
 export function TraceLayer({
@@ -181,6 +186,7 @@ export function TraceLayer({
   onDeleteTrace,
   onSelectTrace,
   onStartTraceDrag,
+  onStartTraceSegmentDrag,
 }: TraceLayerProps) {
   function traceNetId(trace: Trace): string | null {
     const first = trace.nodes[0];
@@ -200,6 +206,17 @@ export function TraceLayer({
         const showHandles = tool.type === "select" && isSelected && trace.nodes.length >= 2;
         const start = trace.nodes[0];
         const end = trace.nodes[trace.nodes.length - 1];
+        const segmentHandles = showHandles
+          ? trace.nodes.slice(0, -1).flatMap((from, index) => {
+              const to = trace.nodes[index + 1];
+              if (!to) return [];
+              const isAxisAligned = (from.x === to.x || from.y === to.y) && (from.x !== to.x || from.y !== to.y);
+              if (!isAxisAligned) return [];
+              const a = holeCenterPx(from);
+              const b = holeCenterPx(to);
+              return [{ index, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }];
+            })
+          : [];
 
         return (
           <g key={trace.id}>
@@ -240,6 +257,19 @@ export function TraceLayer({
                     onStartTraceDrag(trace, "end", event);
                   }}
                 />
+                {segmentHandles.map((handle) => (
+                  <circle
+                    key={`seg-${trace.id}-${handle.index}`}
+                    cx={handle.x}
+                    cy={handle.y}
+                    r={5}
+                    className={styles.traceHandle}
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      onStartTraceSegmentDrag(trace, handle.index, event);
+                    }}
+                  />
+                ))}
               </>
             ) : null}
           </g>

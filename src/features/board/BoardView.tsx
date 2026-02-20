@@ -149,6 +149,7 @@ export function BoardView() {
               onDeleteTrace={(id) => dispatch({ type: "DELETE_TRACE", id })}
               onSelectTrace={(id) => dispatch({ type: "SELECT", selection: { type: "trace", id } })}
               onStartTraceDrag={interactions.startTraceDrag}
+              onStartTraceSegmentDrag={interactions.startTraceSegmentDrag}
             />
 
             <TraceDraftLayer traceDraft={traceDraft} hoverHole={state.ui.hoverHole} tool={tool} />

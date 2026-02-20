@@ -4,6 +4,7 @@ import {
   createId,
   getPartPins,
   holeKey,
+  isWithinBoard,
   moveConnectedTraceEndpoints,
   movedPartPinMap,
   type Board,
@@ -78,6 +79,11 @@ export function useBoardInteractions({
     pointerId: number;
     traceId: string;
     endpoint: "start" | "end";
+  } | null>(null);
+  const traceSegmentDragRef = useRef<{
+    pointerId: number;
+    traceId: string;
+    segmentIndex: number;
   } | null>(null);
   const labelDragRef = useRef<{
     pointerId: number;
@@ -174,6 +180,92 @@ export function useBoardInteractions({
     const svg = svgRef.current;
     if (svg) svg.setPointerCapture(event.pointerId);
     traceDragRef.current = { pointerId: event.pointerId, traceId: trace.id, endpoint };
+    setTraceDragPreview(trace);
+    dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
+  }
+
+  function segmentAxis(a: Hole, b: Hole): "horizontal" | "vertical" | null {
+    if (a.x === b.x && a.y !== b.y) return "vertical";
+    if (a.y === b.y && a.x !== b.x) return "horizontal";
+    return null;
+  }
+
+  function compactTraceNodes(nodes: readonly Hole[]): readonly Hole[] {
+    const compacted: Hole[] = [];
+    for (const node of nodes) {
+      const last = compacted[compacted.length - 1];
+      if (last && last.x === node.x && last.y === node.y) continue;
+      compacted.push(node);
+    }
+    return compacted.length >= 2 ? compacted : nodes;
+  }
+
+  function allNodesWithinBoard(nodes: readonly Hole[]): boolean {
+    return nodes.every((node) => isWithinBoard(board, node));
+  }
+
+  function moveTraceSegment(trace: Trace, segmentIndex: number, targetHole: Hole): Trace | null {
+    const nodes = trace.nodes;
+    if (segmentIndex < 0 || segmentIndex >= nodes.length - 1) return null;
+
+    const a = nodes[segmentIndex];
+    const b = nodes[segmentIndex + 1];
+    if (!a || !b) return null;
+
+    const axis = segmentAxis(a, b);
+    if (!axis) return null;
+
+    // Single straight trace: dragging the middle creates a natural dogleg while keeping endpoints fixed.
+    if (nodes.length === 2) {
+      const nextNodes =
+        axis === "horizontal"
+          ? compactTraceNodes([a, { x: a.x, y: targetHole.y }, { x: b.x, y: targetHole.y }, b])
+          : compactTraceNodes([a, { x: targetHole.x, y: a.y }, { x: targetHole.x, y: b.y }, b]);
+      if (!allNodesWithinBoard(nextNodes)) return null;
+      return { ...trace, nodes: nextNodes };
+    }
+
+    const isFirst = segmentIndex === 0;
+    const isLast = segmentIndex === nodes.length - 2;
+
+    if (!isFirst && !isLast) {
+      const nextNodes = [...nodes];
+      if (axis === "horizontal") {
+        nextNodes[segmentIndex] = { ...nextNodes[segmentIndex], y: targetHole.y };
+        nextNodes[segmentIndex + 1] = { ...nextNodes[segmentIndex + 1], y: targetHole.y };
+      } else {
+        nextNodes[segmentIndex] = { ...nextNodes[segmentIndex], x: targetHole.x };
+        nextNodes[segmentIndex + 1] = { ...nextNodes[segmentIndex + 1], x: targetHole.x };
+      }
+      const compacted = compactTraceNodes(nextNodes);
+      if (!allNodesWithinBoard(compacted)) return null;
+      return { ...trace, nodes: compacted };
+    }
+
+    if (isFirst) {
+      const start = nodes[0];
+      const moved = axis === "horizontal" ? { ...nodes[1], y: targetHole.y } : { ...nodes[1], x: targetHole.x };
+      const bridge = axis === "horizontal" ? { x: start.x, y: moved.y } : { x: moved.x, y: start.y };
+      const nextNodes = compactTraceNodes([start, bridge, moved, ...nodes.slice(2)]);
+      if (!allNodesWithinBoard(nextNodes)) return null;
+      return { ...trace, nodes: nextNodes };
+    }
+
+    const end = nodes[nodes.length - 1];
+    const moved = axis === "horizontal"
+      ? { ...nodes[nodes.length - 2], y: targetHole.y }
+      : { ...nodes[nodes.length - 2], x: targetHole.x };
+    const bridge = axis === "horizontal" ? { x: end.x, y: moved.y } : { x: moved.x, y: end.y };
+    const nextNodes = compactTraceNodes([...nodes.slice(0, -2), moved, bridge, end]);
+    if (!allNodesWithinBoard(nextNodes)) return null;
+    return { ...trace, nodes: nextNodes };
+  }
+
+  function startTraceSegmentDrag(trace: Trace, segmentIndex: number, event: ReactPointerEvent<SVGCircleElement>) {
+    if (tool.type !== "select") return;
+    const svg = svgRef.current;
+    if (svg) svg.setPointerCapture(event.pointerId);
+    traceSegmentDragRef.current = { pointerId: event.pointerId, traceId: trace.id, segmentIndex };
     setTraceDragPreview(trace);
     dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
   }
@@ -447,6 +539,23 @@ export function useBoardInteractions({
       return;
     }
 
+    const traceSegmentDrag = traceSegmentDragRef.current;
+    if (traceSegmentDrag && traceSegmentDrag.pointerId === event.pointerId) {
+      const hole = holeFromPointerEvent(event);
+      if (hole) {
+        const source =
+          traceDragPreview?.id === traceSegmentDrag.traceId
+            ? traceDragPreview
+            : traces.find((entry) => entry.id === traceSegmentDrag.traceId);
+        if (source) {
+          const next = moveTraceSegment(source, traceSegmentDrag.segmentIndex, hole);
+          if (next) setTraceDragPreview(next);
+        }
+      }
+      setHoverFromPointer(event);
+      return;
+    }
+
     const labelDrag = labelDragRef.current;
     if (labelDrag && labelDrag.pointerId === event.pointerId) {
       const world = worldFromPointerEvent(event);
@@ -530,6 +639,16 @@ export function useBoardInteractions({
         dispatch({ type: "UPDATE_TRACE", id: traceDrag.traceId, nodes: traceDragPreview.nodes });
       }
       traceDragRef.current = null;
+      setTraceDragPreview(null);
+      return;
+    }
+
+    const traceSegmentDrag = traceSegmentDragRef.current;
+    if (traceSegmentDrag && traceSegmentDrag.pointerId === event.pointerId) {
+      if (traceDragPreview && traceDragPreview.id === traceSegmentDrag.traceId) {
+        dispatch({ type: "UPDATE_TRACE", id: traceSegmentDrag.traceId, nodes: traceDragPreview.nodes });
+      }
+      traceSegmentDragRef.current = null;
       setTraceDragPreview(null);
       return;
     }
@@ -640,6 +759,7 @@ export function useBoardInteractions({
     onDoubleClick,
     startInline2Stretch,
     startTraceDrag,
+    startTraceSegmentDrag,
     startLabelDrag,
     startPartDrag,
   };

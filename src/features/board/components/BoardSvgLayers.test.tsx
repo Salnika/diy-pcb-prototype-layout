@@ -79,6 +79,7 @@ describe("BoardSvgLayers", () => {
     const onDeleteTrace = vi.fn();
     const onSelectTrace = vi.fn();
     const onStartTraceDrag = vi.fn();
+    const onStartTraceSegmentDrag = vi.fn();
     const trace = makeTrace("t1", [{ x: 0, y: 0 }, { x: 1, y: 0 }]);
     const netIndex = {
       ...emptyNetIndex,
@@ -96,6 +97,7 @@ describe("BoardSvgLayers", () => {
         onDeleteTrace={onDeleteTrace}
         onSelectTrace={onSelectTrace}
         onStartTraceDrag={onStartTraceDrag}
+        onStartTraceSegmentDrag={onStartTraceSegmentDrag}
       />,
     );
 
@@ -105,9 +107,11 @@ describe("BoardSvgLayers", () => {
     expect(onSelectTrace).toHaveBeenCalledWith("t1");
 
     const handles = container.querySelectorAll("circle");
-    expect(handles.length).toBe(2);
+    expect(handles.length).toBe(3);
     fireEvent.pointerDown(handles[0]!, { button: 0 });
     expect(onStartTraceDrag).toHaveBeenCalledWith(trace, "start", expect.anything());
+    fireEvent.pointerDown(handles[2]!, { button: 0 });
+    expect(onStartTraceSegmentDrag).toHaveBeenCalledWith(trace, 0, expect.anything());
 
     rerender(
       <svg>
@@ -121,6 +125,7 @@ describe("BoardSvgLayers", () => {
             onDeleteTrace={onDeleteTrace}
             onSelectTrace={onSelectTrace}
             onStartTraceDrag={onStartTraceDrag}
+            onStartTraceSegmentDrag={onStartTraceSegmentDrag}
           />
         </g>
       </svg>,
