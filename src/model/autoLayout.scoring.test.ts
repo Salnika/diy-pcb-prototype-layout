@@ -114,7 +114,7 @@ describe("autoLayout.scoring", () => {
       i === 0
         ? {
             ...part,
-            placement: { ...part.placement, origin: { x: 2, y: 2 }, rotation: 90 },
+            placement: { ...part.placement, origin: { x: 2, y: 2 }, rotation: 90 as const },
           }
         : part,
     );

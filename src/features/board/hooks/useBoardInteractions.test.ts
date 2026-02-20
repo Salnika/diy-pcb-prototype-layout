@@ -19,6 +19,8 @@ vi.mock("../boardGeometry", async () => {
 
 import { useBoardInteractions } from "./useBoardInteractions";
 
+type BoardInteractionsParams = Parameters<typeof useBoardInteractions>[0];
+
 function emptyNetIndex(): NetIndex {
   return {
     holeToNetId: new Map(),
@@ -47,18 +49,18 @@ describe("useBoardInteractions", () => {
     vi.spyOn(window, "prompt").mockReturnValue("GND");
   });
 
-  function baseParams() {
+  function baseParams(): BoardInteractionsParams {
     const project = makeProject({ width: 12, height: 10 });
     return {
       board: project.board,
       viewport: { scale: 1, pan: { x: 0, y: 0 } },
-      tool: { type: "select" as const },
-      selection: { type: "none" as const },
+      tool: { type: "select" },
+      selection: { type: "none" },
       traceDraft: null,
       hoverHole: null,
-      parts: [] as const,
-      traces: [] as const,
-      netLabels: [] as const,
+      parts: [],
+      traces: [],
+      netLabels: [],
       fixedPartIds: new Set<string>(),
       netIndex: emptyNetIndex(),
       dispatch: vi.fn(),
@@ -135,8 +137,8 @@ describe("useBoardInteractions", () => {
 
   it("handles connect mode state machine", () => {
     const dispatch = vi.fn();
-    const initial = { ...baseParams(), tool: { type: "connect" as const }, dispatch };
-    const { result, rerender } = renderHook((props: typeof initial) => useBoardInteractions(props), {
+    const initial: BoardInteractionsParams = { ...baseParams(), tool: { type: "connect" }, dispatch };
+    const { result, rerender } = renderHook((props: BoardInteractionsParams) => useBoardInteractions(props), {
       initialProps: initial,
     });
     result.current.svgRef.current = fakeSvg();

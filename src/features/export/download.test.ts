@@ -3,7 +3,7 @@ import { downloadBlob, downloadText } from "./download";
 
 describe("download", () => {
   it("downloads blob through temporary anchor", () => {
-    const createObjectURL = vi.fn(() => "blob:abc");
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:abc");
     const revokeObjectURL = vi.fn();
     vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
 
@@ -29,7 +29,7 @@ describe("download", () => {
   });
 
   it("wraps text payload as blob with given mime", () => {
-    const createObjectURL = vi.fn(() => "blob:text");
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:text");
     const revokeObjectURL = vi.fn();
     vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
     const click = vi.fn();
@@ -43,7 +43,7 @@ describe("download", () => {
     }) as typeof document.createElement);
 
     downloadText("a.txt", "hello", "text/custom");
-    const blob = createObjectURL.mock.calls[0][0] as Blob;
+    const [blob] = createObjectURL.mock.calls[0];
     expect(blob.type).toBe("text/custom");
   });
 });

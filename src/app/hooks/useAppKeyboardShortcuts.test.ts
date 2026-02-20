@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppKeyboardShortcuts } from "./useAppKeyboardShortcuts";
 import { makeInline2Part } from "../../test/fixtures";
 
+type KeyboardShortcutProps = Omit<Parameters<typeof useAppKeyboardShortcuts>[0], "dispatch">;
+
 function dispatchKey(
   key: string,
   opts: Partial<KeyboardEventInit> & { target?: EventTarget | null } = {},
@@ -98,7 +100,7 @@ describe("useAppKeyboardShortcuts", () => {
   it("handles deletion and trace pop", () => {
     const dispatch = vi.fn();
     const { rerender } = renderHook(
-      (props: { tool: any; selection: any; traceDraft: any }) =>
+      (props: KeyboardShortcutProps) =>
         useAppKeyboardShortcuts({
           dispatch,
           tool: props.tool,
@@ -111,6 +113,7 @@ describe("useAppKeyboardShortcuts", () => {
           tool: { type: "select" },
           selection: { type: "none" },
           traceDraft: { kind: "wire", layer: "bottom", nodes: [{ x: 0, y: 0 }] },
+          parts: [],
         },
       },
     );
@@ -119,13 +122,18 @@ describe("useAppKeyboardShortcuts", () => {
     expect(ev.defaultPrevented).toBe(true);
     expect(dispatch).toHaveBeenCalledWith({ type: "POP_TRACE_NODE" });
 
-    rerender({ tool: { type: "select" }, selection: { type: "part", id: "p1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "part", id: "p1" }, traceDraft: null, parts: [] });
     dispatchKey("Delete");
-    rerender({ tool: { type: "select" }, selection: { type: "trace", id: "t1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "trace", id: "t1" }, traceDraft: null, parts: [] });
     dispatchKey("Delete");
-    rerender({ tool: { type: "select" }, selection: { type: "netLabel", id: "nl1" }, traceDraft: null });
+    rerender({
+      tool: { type: "select" },
+      selection: { type: "netLabel", id: "nl1" },
+      traceDraft: null,
+      parts: [],
+    });
     dispatchKey("Backspace");
-    rerender({ tool: { type: "select" }, selection: { type: "net", id: "n1" }, traceDraft: null });
+    rerender({ tool: { type: "select" }, selection: { type: "net", id: "n1" }, traceDraft: null, parts: [] });
     dispatchKey("Delete");
 
     expect(dispatch).toHaveBeenCalledWith({ type: "DELETE_PART", id: "p1" });
