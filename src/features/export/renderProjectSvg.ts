@@ -208,7 +208,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
       for (let x = 0; x < board.width; x += 1) {
         const cx = GUTTER_LEFT + (x + 0.5) * PITCH_PX;
         const cy = GUTTER_TOP + (y + 0.5) * PITCH_PX;
-        out += `<circle cx="${cx}" cy="${cy}" r="2.2" style="fill:rgba(238,240,255,0.22)" />`;
+        out += `<circle cx="${cx}" cy="${cy}" r="1.8" style="fill:rgba(238,240,255,0.14)" />`;
       }
     }
     return out;

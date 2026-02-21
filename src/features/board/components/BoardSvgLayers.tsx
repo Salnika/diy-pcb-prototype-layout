@@ -134,8 +134,8 @@ type BoardHolesLayerProps = Readonly<{
 
 export function BoardHolesLayer({ holes, hoverHole, selection }: BoardHolesLayerProps) {
   const idle = selection.type === "none";
-  const holeRadius = idle ? 1.9 : 2.2;
-  const hoverRadius = idle ? 2.9 : 3.2;
+  const holeRadius = idle ? 1.6 : 1.9;
+  const hoverRadius = idle ? 2.5 : 2.8;
 
   return (
     <>

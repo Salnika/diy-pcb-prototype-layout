@@ -58,7 +58,7 @@ describe("BoardSvgLayers", () => {
       <BoardHolesLayer holes={[{ x: 0, y: 0 }, { x: 1, y: 0 }]} hoverHole={{ x: 1, y: 0 }} selection={{ type: "none" }} />,
     );
     const circlesIdle = [...container.querySelectorAll("circle")];
-    expect(circlesIdle.map((c) => c.getAttribute("r"))).toEqual(expect.arrayContaining(["1.9", "2.9"]));
+    expect(circlesIdle.map((c) => c.getAttribute("r"))).toEqual(expect.arrayContaining(["1.6", "2.5"]));
 
     rerender(
       <svg>
@@ -72,7 +72,7 @@ describe("BoardSvgLayers", () => {
       </svg>,
     );
     const circlesActive = [...container.querySelectorAll("circle")];
-    expect(circlesActive.map((c) => c.getAttribute("r"))).toEqual(expect.arrayContaining(["2.2", "3.2"]));
+    expect(circlesActive.map((c) => c.getAttribute("r"))).toEqual(expect.arrayContaining(["1.9", "2.8"]));
   });
 
   it("handles trace selection, erase and drag handles", () => {

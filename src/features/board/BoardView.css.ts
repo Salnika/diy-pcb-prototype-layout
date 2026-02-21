@@ -64,7 +64,7 @@ export const boardBg = style({
 });
 
 export const hole = style({
-  fill: "rgba(238,240,255,0.22)",
+  fill: "rgba(238,240,255,0.12)",
 });
 
 export const holeHover = style({
