@@ -146,7 +146,10 @@ export const partPin = style({
 export const partPinHandle = style({
   fill: "rgba(126,231,135,0.12)",
   stroke: vars.color.accent2,
-  strokeWidth: 1.5,
+  strokeWidth: 0,
+  ":hover": {
+    strokeWidth: 1,
+  },
 });
 
 export const connectDraft = style({
@@ -158,19 +161,19 @@ export const connectDraft = style({
 export const partLockMarker = style({
   fill: "rgba(126,231,135,0.25)",
   stroke: vars.color.accent2,
-  strokeWidth: 1.5,
+  strokeWidth: 1,
   pointerEvents: "none",
 });
 
 export const fixedHole = style({
   fill: "rgba(126,231,135,0.16)",
   stroke: vars.color.accent2,
-  strokeWidth: 1.5,
+  strokeWidth: 1,
 });
 
 export const fixedHoleCross = style({
   stroke: vars.color.accent2,
-  strokeWidth: 1.5,
+  strokeWidth: 1,
 });
 
 export const partPin1Marker = style({
