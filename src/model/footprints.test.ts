@@ -87,9 +87,15 @@ describe("getPartPins", () => {
       ...makeInline2Part({ id: "s1", ref: "S1", kind: "power_pos" }),
       footprint: { type: "single" as const, pinLabel: undefined },
     };
+    const oddSwitch = {
+      ...makeTo92Part({ id: "sw", ref: "SW1", kind: "potentiometer", pinNames: ["", "", ""] }),
+      kind: "switch" as const,
+      footprint: { type: "to92_inline3" as const, pinNames: [undefined, undefined, undefined] as any },
+    };
 
     expect(getPartPins(oddTo92).map((p) => p.pinLabel)).toEqual(["1", "2", "3"]);
     expect(getPartPins(oddFree2).map((p) => p.pinLabel)).toEqual(["1", "2"]);
     expect(getPartPins(oddSingle)[0].pinLabel).toBe("1");
+    expect(getPartPins(oddSwitch).map((p) => p.pinLabel)).toEqual(["1", "2", "3"]);
   });
 });
