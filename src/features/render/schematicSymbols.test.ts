@@ -135,6 +135,7 @@ describe("buildSchematicSymbol", () => {
     expect(dip.primitives.some((p) => p.type === "rect")).toBe(true);
     expect(dip.primitives.some((p) => p.role === "pin1")).toBe(true);
     expect(dip.texts).toHaveLength(8);
+    expect(dip.refAnchor).toEqual({ x: 15, y: 15 });
 
     const fallback = buildSchematicSymbol(
       { ...makeInline2Part({ id: "x", ref: "X1" }), kind: "unknown_kind" as any },

@@ -542,13 +542,18 @@ function symbolForDip(pins: readonly PinGeometry[]): PartSymbol {
     pin1Marker.push({ type: "circle", role: "pin1", cx: markerPos.x, cy: markerPos.y, r: 2.3 });
   }
 
+  const bodyCenter = {
+    x: rect.x + rect.width / 2,
+    y: rect.y + rect.height / 2,
+  };
+
   return {
     primitives: [
       { type: "rect", role: "body", ...rect },
       ...pin1Marker,
     ],
     texts,
-    refAnchor: { x: rect.x + rect.width / 2, y: rect.y - 6 },
+    refAnchor: bodyCenter,
   };
 }
 
