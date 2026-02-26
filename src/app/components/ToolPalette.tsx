@@ -12,7 +12,7 @@ type ToolPaletteProps = Readonly<{
 export function ToolPalette({ tool, onSetTool }: ToolPaletteProps) {
   return (
     <aside className={styles.leftPane}>
-      <h2 className={styles.paneTitle}>Palette</h2>
+      <h2 className={styles.paneTitle}>Tools</h2>
       <div className={styles.paneSection}>
         <div className={styles.toolGroup}>
           {PRIMARY_TOOLS.map((entry) => (

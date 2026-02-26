@@ -61,7 +61,7 @@ describe("useProjectIO", () => {
     });
   });
 
-  it("exports json and svg using safe filenames", () => {
+  it("exports json, svg and BOM CSV using safe filenames", () => {
     const dispatch = vi.fn();
     const project = createNewProject("My Project");
     const { result } = renderHook(() => useProjectIO({ project, dispatch }));
@@ -76,6 +76,9 @@ describe("useProjectIO", () => {
     result.current.exportSvg();
     expect(renderProjectSvg).toHaveBeenCalledWith(project);
     expect(downloadText).toHaveBeenCalledWith("My-Project.svg", "<svg/>", "image/svg+xml;charset=utf-8");
+
+    result.current.exportBomCsv();
+    expect(downloadText).toHaveBeenCalledWith("My-Project.bom.csv", "Refs,Qty,Value,Type\n", "text/csv;charset=utf-8");
   });
 
   it("uses project fallback filename when meta.name is absent", async () => {
@@ -85,6 +88,7 @@ describe("useProjectIO", () => {
 
     result.current.exportJson();
     result.current.exportSvg();
+    result.current.exportBomCsv();
     await result.current.exportPng();
 
     expect(downloadText).toHaveBeenCalledWith(
@@ -93,6 +97,7 @@ describe("useProjectIO", () => {
       "application/json;charset=utf-8",
     );
     expect(downloadText).toHaveBeenCalledWith("project.svg", "<svg/>", "image/svg+xml;charset=utf-8");
+    expect(downloadText).toHaveBeenCalledWith("project.bom.csv", "Refs,Qty,Value,Type\n", "text/csv;charset=utf-8");
     expect(downloadPng).toHaveBeenCalledWith("project.png", "<svg/>", 123, 45);
   });
 

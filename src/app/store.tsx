@@ -165,8 +165,8 @@ function nextTabName(existing: readonly TabState[]): string {
     if (tab.project.meta.name) used.add(tab.project.meta.name);
   }
   let idx = 1;
-  while (used.has(`Projet ${idx}`)) idx += 1;
-  return `Projet ${idx}`;
+  while (used.has(`Project ${idx}`)) idx += 1;
+  return `Project ${idx}`;
 }
 
 function createTab(existing: readonly TabState[], name?: string): TabState {
@@ -319,7 +319,7 @@ function validatePartPlacement(project: Project, part: Part): string | null {
   const pins = getPartPins(part);
   for (const pin of pins) {
     if (!isWithinBoard(project.board, pin.hole)) {
-      return `Placement invalide: ${part.ref} sort de la board.`;
+      return `Invalid placement: ${part.ref} is outside the board.`;
     }
   }
   return null;
@@ -327,31 +327,31 @@ function validatePartPlacement(project: Project, part: Part): string | null {
 
 function validateBoardUpdate(project: Project, width: number, height: number): string | null {
   if (!Number.isInteger(width) || width <= 0 || !Number.isInteger(height) || height <= 0) {
-    return "Dimensions de board invalides.";
+    return "Invalid board dimensions.";
   }
   const nextBoard = { ...project.board, width, height };
   for (const part of project.parts) {
     for (const pin of getPartPins(part)) {
       if (!isWithinBoard(nextBoard, pin.hole)) {
-        return `Redimensionnement invalide: ${part.ref} sort de la board.`;
+        return `Invalid resize: ${part.ref} is outside the board.`;
       }
     }
   }
   for (const trace of project.traces) {
     for (const hole of trace.nodes) {
       if (!isWithinBoard(nextBoard, hole)) {
-        return "Redimensionnement invalide: une trace sort de la board.";
+        return "Invalid resize: a trace is outside the board.";
       }
     }
   }
   for (const label of project.netLabels) {
     if (!isWithinBoard(nextBoard, label.at)) {
-      return "Redimensionnement invalide: un label sort de la board.";
+      return "Invalid resize: a label is outside the board.";
     }
   }
   for (const hole of project.layoutConstraints.fixedHoles) {
     if (!isWithinBoard(nextBoard, hole)) {
-      return "Redimensionnement invalide: un point fixe sort de la board.";
+      return "Invalid resize: a fixed hole is outside the board.";
     }
   }
   return null;
@@ -589,14 +589,14 @@ function inferNetlistFromCurrentConnectivity(project: Project): InferredNetlistR
     return {
       netlist,
       warnings: [
-        "Auto-layout: netlist vide et aucune connectivite exploitable trouvee dans les traces existantes.",
+        "Auto-layout: empty netlist and no usable connectivity found in existing traces.",
       ],
     };
   }
 
   return {
     netlist,
-    warnings: [`Auto-layout: netlist inferee depuis les traces existantes (${netlist.length} nets).`],
+    warnings: [`Auto-layout: netlist inferred from existing traces (${netlist.length} nets).`],
   };
 }
 
@@ -1000,12 +1000,12 @@ function reducer(state: AppState, action: Action): AppState {
       if (traceBuild.totalNetCount === 0) {
         return setActiveTabError(
           state,
-          `Auto-layout annule: aucun net routable (au moins 2 terminaux) n'a ete trouve.`,
+          "Auto-layout canceled: no routable net (at least 2 terminals) was found.",
         );
       }
 
       if (traceBuild.totalNetCount > 0 && !traceBuild.complete) {
-        const message = `Auto-layout annule: routage incomplet (${traceBuild.routedNetCount}/${traceBuild.totalNetCount} nets). ${combinedWarnings.join(" ")}`;
+        const message = `Auto-layout canceled: incomplete routing (${traceBuild.routedNetCount}/${traceBuild.totalNetCount} nets). ${combinedWarnings.join(" ")}`;
         return setActiveTabError(state, message);
       }
 

@@ -80,7 +80,7 @@ export function formatTerminal(
     return { title: holeLabel(terminal.hole, labeling), meta: "hole" };
   }
   const part = parts.find((entry) => entry.id === terminal.partId);
-  if (!part) return { title: `pin ${terminal.pinId}`, meta: "part manquant" };
+  if (!part) return { title: `pin ${terminal.pinId}`, meta: "missing part" };
   return { title: `${part.ref}.${terminal.pinId}`, meta: part.kind };
 }
 

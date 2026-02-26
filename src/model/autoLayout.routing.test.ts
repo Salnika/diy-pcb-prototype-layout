@@ -38,7 +38,7 @@ describe("autoLayout.routing", () => {
     const result = tracesFromNetlist(project);
     expect(result.complete).toBe(false);
     expect(result.traces).toEqual([]);
-    expect(result.warnings.join(" ")).toContain("routage impossible");
+    expect(result.warnings.join(" ")).toContain("routing is impossible");
   });
 
   it("adds missing-pin warning and skips underspecified nets", () => {
@@ -48,7 +48,7 @@ describe("autoLayout.routing", () => {
     const result = tracesFromNetlist(project);
     expect(result.totalNetCount).toBe(0);
     expect(result.complete).toBe(true);
-    expect(result.warnings.join(" ")).toContain("terminaux pin manquants");
+    expect(result.warnings.join(" ")).toContain("missing pin terminals");
   });
 
   it("can report remaining congestion", () => {

@@ -87,12 +87,12 @@ export function BoardView() {
     dispatch,
   });
 
-  const hoverText = state.ui.hoverHole ? holeLabel(state.ui.hoverHole, board.labeling) : "—";
+  const hoverText = state.ui.hoverHole ? holeLabel(state.ui.hoverHole, board.labeling) : "-";
   const connectHint =
     tool.type === "connect"
       ? interactions.connectDraft
-        ? "Connect: choisir le 2e terminal (Esc pour annuler)"
-        : "Connect: choisir 2 terminaux"
+        ? "Connect: choose the 2nd terminal (Esc to cancel)"
+        : "Connect: choose 2 terminals"
       : null;
 
   return (
@@ -107,10 +107,10 @@ export function BoardView() {
         <span className={styles.meta}>
           {traceDraft
             ? `Trace: ${traceDraft.nodes.length} nodes (Enter=finish, Esc=cancel, Del=undo)`
-            : connectHint
-              ? connectHint
-              : activeNetId
-                ? `Net: ${activeNetName ?? "—"}`
+              : connectHint
+                ? connectHint
+                : activeNetId
+                ? `Net: ${activeNetName ?? "-"}`
                 : " "}
           {"  "}·{"  "}Zoom: {Math.round(viewport.scale * 100)}%
         </span>

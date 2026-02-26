@@ -13,7 +13,7 @@ export function TabsBar({ tabs, activeTabId, onSelectTab, onAddTab }: TabsBarPro
     <div className={styles.tabBar}>
       <div className={styles.tabList}>
         {tabs.map((tab, index) => {
-          const name = tab.project.meta.name?.trim() || `Projet ${index + 1}`;
+          const name = tab.project.meta.name?.trim() || `Project ${index + 1}`;
           const active = tab.id === activeTabId;
           return (
             <button

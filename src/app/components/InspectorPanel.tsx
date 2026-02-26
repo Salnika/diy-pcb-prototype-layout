@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { alphaLabel } from "../../model";
 import type { Board, Net, NetLabel, Part, Trace } from "../../model";
 import type { Dispatch } from "react";
+import { buildBomRows } from "../../features/export/bom";
 import {
   BOARD_MAX,
   BOARD_MIN,
@@ -12,6 +13,12 @@ import {
 import * as styles from "../App.css";
 import { rotatePart, type Action, type Selection } from "../store";
 import { PART_KIND_OPTIONS } from "./toolDefinitions";
+
+const PART_KIND_LABELS = new Map(PART_KIND_OPTIONS.map((option) => [option.value, option.label] as const));
+
+function partKindLabel(kind: Part["kind"]): string {
+  return PART_KIND_LABELS.get(kind) ?? kind;
+}
 
 type InspectorPanelProps = Readonly<{
   collapsed: boolean;
@@ -33,6 +40,7 @@ type InspectorPanelProps = Readonly<{
   onToggleCollapsed: () => void;
   onUpdateBoardSize: (nextWidth: number, nextHeight: number) => void;
   onToggleBoardLabeling: () => void;
+  onExportBomCsv: () => void;
 }>;
 
 function defaultTo92PinNames(kind: Part["kind"]): readonly [string, string, string] {
@@ -68,8 +76,11 @@ export function InspectorPanel({
   onToggleCollapsed,
   onUpdateBoardSize,
   onToggleBoardLabeling,
+  onExportBomCsv,
 }: InspectorPanelProps) {
   const traceColorInputRef = useRef<HTMLInputElement | null>(null);
+  const [activeTab, setActiveTab] = useState<"inspector" | "bom">("inspector");
+  const bomRows = useMemo(() => buildBomRows(projectParts), [projectParts]);
 
   return (
     <aside className={`${styles.rightPane} ${collapsed ? styles.rightPaneCollapsed : ""}`}>
@@ -79,14 +90,33 @@ export function InspectorPanel({
           type="button"
           className={styles.inspectorToggle}
           onClick={onToggleCollapsed}
-          aria-label={collapsed ? "Ouvrir l'inspecteur" : "Réduire l'inspecteur"}
-          title={collapsed ? "Ouvrir l'inspecteur" : "Réduire l'inspecteur"}
+          aria-label={collapsed ? "Open inspector" : "Collapse inspector"}
+          title={collapsed ? "Open inspector" : "Collapse inspector"}
         >
           {collapsed ? "⟨" : "⟩"}
         </button>
       </div>
       {collapsed ? null : (
-        <div className={styles.paneSection}>
+        <>
+          <div className={styles.inspectorTabs}>
+            <button
+              type="button"
+              className={activeTab === "inspector" ? styles.inspectorTabActive : styles.inspectorTab}
+              onClick={() => setActiveTab("inspector")}
+            >
+              Inspector
+            </button>
+            <button
+              type="button"
+              className={activeTab === "bom" ? styles.inspectorTabActive : styles.inspectorTab}
+              onClick={() => setActiveTab("bom")}
+            >
+              BOM
+            </button>
+          </div>
+
+          {activeTab === "inspector" ? (
+            <div className={styles.paneSection}>
           <div className={styles.inspectorRow}>
             <div className={styles.label}>Board</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -119,11 +149,11 @@ export function InspectorPanel({
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button type="button" className={styles.smallButton} onClick={onToggleBoardLabeling}>
-                Inverser labels
+                Toggle labels
               </button>
               <span className={styles.chip}>
-                {board.labeling.rows === "alpha" ? "Lignes A.." : "Lignes 1.."} ·{" "}
-                {board.labeling.cols === "alpha" ? "Colonnes A.." : "Colonnes 1.."}
+                {board.labeling.rows === "alpha" ? "Rows A.." : "Rows 1.."} ·{" "}
+                {board.labeling.cols === "alpha" ? "Columns A.." : "Columns 1.."}
               </span>
               <span className={styles.chip}>
                 {board.height}×{board.width}
@@ -134,7 +164,7 @@ export function InspectorPanel({
           <div className={styles.inspectorRow}>
             <div className={styles.label}>Nets</div>
             {projectNets.length === 0 ? (
-              <span className={styles.chip}>Aucun net</span>
+              <span className={styles.chip}>No nets</span>
             ) : (
               <div className={styles.netList}>
                 {projectNets.map((net, index) => {
@@ -153,19 +183,19 @@ export function InspectorPanel({
                 })}
               </div>
             )}
-            <span className={styles.chip}>Astuce: outil Connect (C) pour créer/ajouter</span>
+            <span className={styles.chip}>Tip: use Connect (C) to create/add nets</span>
           </div>
 
           <div className={styles.inspectorRow}>
-            <div className={styles.label}>Contraintes</div>
+            <div className={styles.label}>Constraints</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <span className={styles.chip}>Parts fixes: {fixedPartCount}</span>
-              <span className={styles.chip}>Points fixes: {fixedHoleCount}</span>
+              <span className={styles.chip}>Fixed parts: {fixedPartCount}</span>
+              <span className={styles.chip}>Fixed holes: {fixedHoleCount}</span>
             </div>
-            <span className={styles.chip}>Astuce: outil Point fixe (F)</span>
+            <span className={styles.chip}>Tip: use Fixed Point (F)</span>
           </div>
 
-          {selection.type === "none" ? <span className={styles.chip}>Aucune sélection</span> : null}
+          {selection.type === "none" ? <span className={styles.chip}>No selection</span> : null}
 
           {selectedPart ? (
             <>
@@ -240,7 +270,7 @@ export function InspectorPanel({
                       );
                     })}
                   </select>
-                  <div className={styles.chip}>rowSpan fixé: 3</div>
+                  <div className={styles.chip}>rowSpan fixed: 3</div>
                 </div>
               ) : null}
 
@@ -284,7 +314,7 @@ export function InspectorPanel({
 
               <div className={styles.chip}>
                 Origin: {alphaLabel(selectedPart.placement.origin.y)}
-                {selectedPart.placement.origin.x + 1} — Rot {selectedPart.placement.rotation}°
+                {selectedPart.placement.origin.x + 1} - Rot {selectedPart.placement.rotation}°
               </div>
 
               <div style={{ display: "flex", gap: 8 }}>
@@ -316,16 +346,16 @@ export function InspectorPanel({
           {selectedTrace ? (
             <>
               <span className={styles.chip}>
-                Trace: {selectedTrace.kind} — {selectedTrace.nodes.length} nodes
+                Trace: {selectedTrace.kind} - {selectedTrace.nodes.length} nodes
               </span>
               <div className={styles.traceColorRow}>
-                <span className={styles.label}>Net: {selectedTraceNetName ?? "—"}</span>
+                <span className={styles.label}>Net: {selectedTraceNetName ?? "-"}</span>
                 <button
                   type="button"
                   className={styles.traceColorButton}
                   onClick={() => traceColorInputRef.current?.click()}
-                  aria-label="Choisir la couleur du câble"
-                  title="Couleur du câble"
+                  aria-label="Choose wire color"
+                  title="Wire color"
                 >
                   <span
                     className={styles.traceColorDot}
@@ -402,7 +432,7 @@ export function InspectorPanel({
               <div className={styles.inspectorRow}>
                 <div className={styles.label}>Terminals</div>
                 {selectedNet.terminals.length === 0 ? (
-                  <span className={styles.chip}>Aucun terminal</span>
+                  <span className={styles.chip}>No terminals</span>
                 ) : (
                   <div className={styles.netTerminalList}>
                     {selectedNet.terminals.map((terminal, index) => {
@@ -435,7 +465,52 @@ export function InspectorPanel({
               </button>
             </>
           ) : null}
-        </div>
+            </div>
+          ) : null}
+
+          {activeTab === "bom" ? (
+            <div className={styles.paneSection}>
+              <div className={styles.inspectorRow}>
+                <div className={styles.label}>Bill of Materials</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button type="button" className={styles.smallButton} onClick={onExportBomCsv}>
+                    Export CSV
+                  </button>
+                  <span className={styles.chip}>
+                    {projectParts.length} components · {bomRows.length} rows
+                  </span>
+                </div>
+              </div>
+
+              {bomRows.length === 0 ? (
+                <span className={styles.chip}>No components</span>
+              ) : (
+                <div className={styles.bomTableWrap}>
+                  <table className={styles.bomTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.bomHeadCell}>Refs</th>
+                        <th className={styles.bomHeadCell}>Type</th>
+                        <th className={styles.bomHeadCell}>Value</th>
+                        <th className={styles.bomHeadCell}>Qty</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bomRows.map((row) => (
+                        <tr key={row.key}>
+                          <td className={styles.bomRefCell}>{row.refs.join(", ")}</td>
+                          <td className={styles.bomCell}>{partKindLabel(row.kind)}</td>
+                          <td className={styles.bomCell}>{row.value}</td>
+                          <td className={styles.bomCell}>{row.quantity}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </>
       )}
     </aside>
   );

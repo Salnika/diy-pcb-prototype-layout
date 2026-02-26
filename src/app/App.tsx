@@ -36,7 +36,7 @@ export function App() {
   const canRedo = state.history.future.length > 0;
   const showAutoLayout = featureFlags.autoLayout;
 
-  const { importJsonFile, exportJson, exportSvg, exportPng } = useProjectIO({
+  const { importJsonFile, exportJson, exportSvg, exportPng, exportBomCsv } = useProjectIO({
     project: state.project,
     dispatch,
   });
@@ -99,7 +99,7 @@ export function App() {
 
   function handleRunAutoLayout() {
     const ok = window.confirm(
-      "Auto-layout: optimisation du placement et régénération des traces à partir des connexions. Continuer ?",
+      "Auto-layout: optimize placement and regenerate traces from connections. Continue?",
     );
     if (!ok) return;
     dispatch({ type: "RUN_AUTO_LAYOUT" });
@@ -160,6 +160,7 @@ export function App() {
           onToggleBoardLabeling={() =>
             dispatch({ type: "UPDATE_BOARD_LABELING", labeling: toggleBoardLabeling(board.labeling) })
           }
+          onExportBomCsv={exportBomCsv}
         />
       </div>
     </div>

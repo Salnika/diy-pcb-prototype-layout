@@ -1,6 +1,7 @@
 import { useCallback, type Dispatch } from "react";
 import { parseProject, serializeProject, type Project } from "../../model";
 import { downloadText } from "../../features/export/download";
+import { projectPartsToBomCsv } from "../../features/export/bom";
 import { downloadPng } from "../../features/export/exportPng";
 import { renderProjectSvg } from "../../features/export/renderProjectSvg";
 import { safeFilename } from "../appUtils";
@@ -49,10 +50,17 @@ export function useProjectIO({ project, dispatch }: UseProjectIOParams) {
     }
   }, [dispatch, project]);
 
+  const exportBomCsv = useCallback(() => {
+    const name = safeFilename(project.meta.name ?? "project");
+    const csv = projectPartsToBomCsv(project.parts);
+    downloadText(`${name}.bom.csv`, csv, "text/csv;charset=utf-8");
+  }, [project]);
+
   return {
     importJsonFile,
     exportJson,
     exportSvg,
     exportPng,
+    exportBomCsv,
   };
 }

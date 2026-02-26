@@ -162,7 +162,7 @@ describe("store", () => {
     act(() => {
       dispatch()({ type: "UPDATE_BOARD", width: 0, height: 0 });
     });
-    expect(state().ui.lastError).toContain("Dimensions de board invalides");
+    expect(state().ui.lastError).toContain("Invalid board dimensions");
 
     act(() => {
       dispatch()({ type: "SET_ERROR", message: "boom" });

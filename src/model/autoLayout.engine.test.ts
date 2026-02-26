@@ -28,7 +28,7 @@ describe("autoLayout.engine", () => {
       fixedHoles: [{ x: 0, y: 0 }],
     });
     const result = autoLayout(project, { seed: 1, iterations: 0, restarts: 1 });
-    expect(result.warnings.join(" ")).toContain("aucun placement valide");
+    expect(result.warnings.join(" ")).toContain("no valid placement");
   });
 
   it("keeps fixed parts unchanged and supports no-rotate mode", () => {

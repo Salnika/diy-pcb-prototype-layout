@@ -51,7 +51,7 @@ describe("autoLayout.scoring", () => {
     expect(metrics.cost).toBeGreaterThan(0);
     expect(metrics.span).toBeGreaterThan(0);
     expect(metrics.misalign).toBeGreaterThan(0);
-    expect(warnings[0]).toContain("terminaux pin manquants");
+    expect(warnings[0]).toContain("missing pin terminals");
   });
 
   it("builds weighted part-edge graph from netlist connectivity", () => {

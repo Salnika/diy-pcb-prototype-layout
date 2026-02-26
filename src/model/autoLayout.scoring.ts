@@ -100,7 +100,7 @@ export function computeNetCost(
   }
 
   if (missingPins.size > 0) {
-    warnings.push(`Netlist: ${missingPins.size} terminaux pin manquants ont ete ignores.`);
+    warnings.push(`Netlist: ${missingPins.size} missing pin terminals were ignored.`);
   }
 
   return { cost, span, misalign };

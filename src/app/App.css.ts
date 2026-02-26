@@ -155,6 +155,36 @@ export const paneSection = style({
   gap: vars.space.sm,
 });
 
+export const inspectorTabs = style({
+  marginTop: vars.space.md,
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: vars.space.xs,
+});
+
+export const inspectorTab = style({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: vars.space.xs,
+  padding: "8px 10px",
+  borderRadius: vars.radius.md,
+  background: vars.color.surface2,
+  border: `1px solid ${vars.color.border}`,
+  color: vars.color.text,
+  cursor: "pointer",
+  fontSize: 12,
+  ":hover": { background: "rgba(255,255,255,0.05)" },
+});
+
+export const inspectorTabActive = style([
+  inspectorTab,
+  {
+    borderColor: "rgba(110,168,254,0.7)",
+    background: "rgba(110,168,254,0.12)",
+  },
+]);
+
 export const toolGroup = style({
   marginTop: vars.space.md,
   display: "grid",
@@ -460,3 +490,42 @@ export const traceColorInput = style({
   opacity: 0,
   pointerEvents: "none",
 });
+
+export const bomTableWrap = style({
+  overflowX: "auto",
+  borderRadius: vars.radius.md,
+  border: `1px solid ${vars.color.border}`,
+  background: vars.color.surface2,
+});
+
+export const bomTable = style({
+  width: "100%",
+  borderCollapse: "collapse",
+  fontSize: 12,
+});
+
+export const bomHeadCell = style({
+  padding: "8px 10px",
+  textAlign: "left",
+  color: vars.color.mutedText,
+  borderBottom: `1px solid ${vars.color.border}`,
+  whiteSpace: "nowrap",
+});
+
+export const bomCell = style({
+  padding: "8px 10px",
+  borderBottom: `1px solid ${vars.color.border}`,
+  selectors: {
+    "&:last-child": {
+      textAlign: "right",
+      whiteSpace: "nowrap",
+    },
+  },
+});
+
+export const bomRefCell = style([
+  bomCell,
+  {
+    fontFamily: vars.font.mono,
+  },
+]);

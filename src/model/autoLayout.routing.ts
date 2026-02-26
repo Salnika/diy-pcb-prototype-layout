@@ -252,7 +252,7 @@ function buildRouteNets(project: Project, pinIndex: ReadonlyMap<string, Hole>, w
       }
       holes.push(hole);
     }
-    if (missing > 0) warnings.push(`Net ${net.name ?? net.id}: ${missing} terminaux pin manquants.`);
+    if (missing > 0) warnings.push(`Net ${net.name ?? net.id}: ${missing} missing pin terminals.`);
     const terminals = uniqueHoles(holes);
     return {
       id: net.id,
@@ -365,11 +365,11 @@ export function tracesFromNetlist(project: Project): TraceBuildResult {
 
   if (best.completeCount < nets.length) {
     for (const net of best.routed) {
-      if (!net.complete) warnings.push(`Net ${net.name}: routage impossible avec les contraintes actuelles.`);
+      if (!net.complete) warnings.push(`Net ${net.name}: routing is impossible with current constraints.`);
     }
   }
   if (best.overflow > 0) {
-    warnings.push(`Routage avec congestion restante (${best.overflow}).`);
+    warnings.push(`Routing with remaining congestion (${best.overflow}).`);
   }
 
   return {

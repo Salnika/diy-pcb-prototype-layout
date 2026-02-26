@@ -80,7 +80,7 @@ describe("appUtils", () => {
     });
     expect(formatTerminal({ kind: "pin", partId: "missing", pinId: "1" }, [part], { rows: "alpha", cols: "numeric" })).toEqual({
       title: "pin 1",
-      meta: "part manquant",
+      meta: "missing part",
     });
     expect(formatTerminal({ kind: "pin", partId: "p1", pinId: "1" }, [part], { rows: "alpha", cols: "numeric" })).toEqual({
       title: "R1.1",

@@ -69,7 +69,7 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
   for (const part of movableParts) {
     const candidates = placementsForPart(part, project.board, fixedHoleSet, allowRotate);
     if (candidates.length === 0) {
-      warnings.push(`Auto-layout: aucun placement valide pour ${part.ref}.`);
+      warnings.push(`Auto-layout: no valid placement for ${part.ref}.`);
     }
     candidatesById.set(part.id, candidates);
   }
