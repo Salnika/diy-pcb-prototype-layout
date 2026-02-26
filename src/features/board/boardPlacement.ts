@@ -45,12 +45,20 @@ function twoPinPlacementFromPins(
       return { origin: pin1, rotation: 0, footprint: { type: "inline2", span: dx, pinLabels } };
     }
     if (dx < 0) {
-      return { origin: pin1, rotation: 180, footprint: { type: "inline2", span: Math.abs(dx), pinLabels } };
+      return {
+        origin: pin1,
+        rotation: 180,
+        footprint: { type: "inline2", span: Math.abs(dx), pinLabels },
+      };
     }
     if (dy > 0) {
       return { origin: pin1, rotation: 90, footprint: { type: "inline2", span: dy, pinLabels } };
     }
-    return { origin: pin1, rotation: 270, footprint: { type: "inline2", span: Math.abs(dy), pinLabels } };
+    return {
+      origin: pin1,
+      rotation: 270,
+      footprint: { type: "inline2", span: Math.abs(dy), pinLabels },
+    };
   }
 
   return { origin: pin1, rotation: 0, footprint: { type: "free2", dx, dy, pinLabels } };

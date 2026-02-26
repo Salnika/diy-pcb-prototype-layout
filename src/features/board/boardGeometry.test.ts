@@ -27,34 +27,71 @@ describe("boardGeometry", () => {
   });
 
   it("maps world to hole and handles boundaries", () => {
-    const board = { type: "perfboard" as const, width: 2, height: 2, labeling: { rows: "alpha" as const, cols: "numeric" as const } };
+    const board = {
+      type: "perfboard" as const,
+      width: 2,
+      height: 2,
+      labeling: { rows: "alpha" as const, cols: "numeric" as const },
+    };
     expect(holeFromWorld({ x: 34, y: 26 }, board)).toEqual({ x: 0, y: 0 });
-    expect(holeFromWorld({ x: 34 + 2 * PITCH_PX - 0.001, y: 26 + 2 * PITCH_PX - 0.001 }, board)).toEqual({ x: 1, y: 1 });
+    expect(
+      holeFromWorld({ x: 34 + 2 * PITCH_PX - 0.001, y: 26 + 2 * PITCH_PX - 0.001 }, board),
+    ).toEqual({ x: 1, y: 1 });
     expect(holeFromWorld({ x: 33, y: 26 }, board)).toBeNull();
     expect(holeFromWorld({ x: 34 + 2 * PITCH_PX, y: 26 }, board)).toBeNull();
   });
 
   it("computes holes/labels/points helpers", () => {
-    expect(holeCenterPx({ x: 1, y: 2 })).toEqual({ x: 34 + 1.5 * PITCH_PX, y: 26 + 2.5 * PITCH_PX });
+    expect(holeCenterPx({ x: 1, y: 2 })).toEqual({
+      x: 34 + 1.5 * PITCH_PX,
+      y: 26 + 2.5 * PITCH_PX,
+    });
     expect(labelWidth("GND")).toBe(3 * 7 + 10);
     const rect = labelRect("GND", { x: 50, y: 60 });
-    expect(rect).toEqual({ x: 50 + LABEL_DEFAULT_OFFSET.dx, y: 60 + LABEL_DEFAULT_OFFSET.dy, width: labelWidth("GND"), height: LABEL_HEIGHT });
+    expect(rect).toEqual({
+      x: 50 + LABEL_DEFAULT_OFFSET.dx,
+      y: 60 + LABEL_DEFAULT_OFFSET.dy,
+      width: labelWidth("GND"),
+      height: LABEL_HEIGHT,
+    });
     expect(labelRect("GND", { x: 10, y: 20 }, { dx: 1, dy: 2 })).toEqual({
       x: 11,
       y: 22,
       width: labelWidth("GND"),
       height: LABEL_HEIGHT,
     });
-    expect(labelTextPos({ x: 5, y: 7 })).toEqual({ x: 5 + LABEL_TEXT_OFFSET_X, y: 7 + LABEL_TEXT_OFFSET_Y });
+    expect(labelTextPos({ x: 5, y: 7 })).toEqual({
+      x: 5 + LABEL_TEXT_OFFSET_X,
+      y: 7 + LABEL_TEXT_OFFSET_Y,
+    });
     expect(labelLeaderTarget({ x: 10, y: 20, width: 30, height: 18 })).toEqual({ x: 25, y: 29 });
-    expect(pointsAttr([{ x: 0, y: 0 }, { x: 1, y: 0 }])).toContain(",");
+    expect(
+      pointsAttr([
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ]),
+    ).toContain(",");
     expect(axisLabel("alpha", 0)).toBe("A");
     expect(axisLabel("numeric", 0)).toBe("1");
-    expect(createViewSize({ type: "perfboard", width: 2, height: 3, labeling: { rows: "alpha", cols: "numeric" } })).toEqual({
+    expect(
+      createViewSize({
+        type: "perfboard",
+        width: 2,
+        height: 3,
+        labeling: { rows: "alpha", cols: "numeric" },
+      }),
+    ).toEqual({
       w: 34 + 2 * PITCH_PX + 12,
       h: 26 + 3 * PITCH_PX + 12,
     });
-    expect(createBoardHoles({ type: "perfboard", width: 2, height: 2, labeling: { rows: "alpha", cols: "numeric" } })).toEqual([
+    expect(
+      createBoardHoles({
+        type: "perfboard",
+        width: 2,
+        height: 2,
+        labeling: { rows: "alpha", cols: "numeric" },
+      }),
+    ).toEqual([
       { x: 0, y: 0 },
       { x: 1, y: 0 },
       { x: 0, y: 1 },
@@ -64,7 +101,10 @@ describe("boardGeometry", () => {
 
   it("converts svg points with CTM when available", () => {
     class FakeDOMPoint {
-      constructor(public x: number, public y: number) {}
+      constructor(
+        public x: number,
+        public y: number,
+      ) {}
       matrixTransform() {
         return { x: this.x + 1, y: this.y + 2 };
       }
@@ -75,7 +115,10 @@ describe("boardGeometry", () => {
     Object.defineProperty(svg, "getScreenCTM", {
       value: () => ({ inverse: () => ({}) }),
     });
-    const point = svgPointFromEvent(svg as SVGSVGElement, { clientX: 10, clientY: 20 } as WheelEvent);
+    const point = svgPointFromEvent(
+      svg as SVGSVGElement,
+      { clientX: 10, clientY: 20 } as WheelEvent,
+    );
     expect(point).toEqual({ x: 11, y: 22 });
   });
 
@@ -88,7 +131,10 @@ describe("boardGeometry", () => {
     Object.defineProperty(svg, "viewBox", {
       value: { baseVal: { width: 200, height: 100 } },
     });
-    const point = svgPointFromEvent(svg as SVGSVGElement, { clientX: 60, clientY: 45 } as WheelEvent);
+    const point = svgPointFromEvent(
+      svg as SVGSVGElement,
+      { clientX: 60, clientY: 45 } as WheelEvent,
+    );
     expect(point).toEqual({ x: 100, y: 50 });
   });
 
@@ -101,7 +147,10 @@ describe("boardGeometry", () => {
     Object.defineProperty(svg, "viewBox", {
       value: { baseVal: { width: 0, height: 0 } },
     });
-    const point = svgPointFromEvent(svg as SVGSVGElement, { clientX: 60, clientY: 45 } as WheelEvent);
+    const point = svgPointFromEvent(
+      svg as SVGSVGElement,
+      { clientX: 60, clientY: 45 } as WheelEvent,
+    );
     expect(point).toEqual({ x: 50, y: 25 });
   });
 

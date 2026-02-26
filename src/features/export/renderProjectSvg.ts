@@ -1,4 +1,11 @@
-import { alphaLabel, computeNetIndex, getPartPins, holeKey, netColor, numericLabel } from "../../model";
+import {
+  alphaLabel,
+  computeNetIndex,
+  getPartPins,
+  holeKey,
+  netColor,
+  numericLabel,
+} from "../../model";
 import type { Hole, Part, Project, Trace } from "../../model";
 import { buildSchematicSymbol } from "../render/schematicSymbols";
 
@@ -60,7 +67,10 @@ function labelTextPos(rect: { x: number; y: number }): { x: number; y: number } 
   return { x: rect.x + LABEL_TEXT_OFFSET_X, y: rect.y + LABEL_TEXT_OFFSET_Y };
 }
 
-function labelLeaderTarget(rect: { x: number; y: number; width: number; height: number }): { x: number; y: number } {
+function labelLeaderTarget(rect: { x: number; y: number; width: number; height: number }): {
+  x: number;
+  y: number;
+} {
   return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
 }
 
@@ -70,7 +80,7 @@ function axisLabel(kind: "alpha" | "numeric", index: number): string {
 
 function renderTrace(trace: Trace, netIndex: ReturnType<typeof computeNetIndex>): string {
   const first = trace.nodes[0];
-  const netId = first ? netIndex.holeToNetId.get(holeKey(first)) ?? trace.id : trace.id;
+  const netId = first ? (netIndex.holeToNetId.get(holeKey(first)) ?? trace.id) : trace.id;
   const name = netIndex.netIdToName.get(netId);
   const color = trace.color ?? netColor(netId, name);
 

@@ -2,14 +2,14 @@ import type { PartKind } from "../../model";
 import type { Tool } from "../store";
 import type { IconName } from "./ToolIcon";
 
-export type ToolButtonDefinition = Readonly<{
+type ToolButtonDefinition = Readonly<{
   tool: Tool;
   icon: IconName;
   label: string;
   title: string;
 }>;
 
-export type PartToolDefinition = Readonly<{
+type PartToolDefinition = Readonly<{
   kind: PartKind;
   icon: IconName;
   label: string;
@@ -19,7 +19,12 @@ export type PartToolDefinition = Readonly<{
 export const PRIMARY_TOOLS: readonly ToolButtonDefinition[] = [
   { tool: { type: "select" }, icon: "select", label: "Select (V)", title: "Select (V)" },
   { tool: { type: "connect" }, icon: "connect", label: "Connect (C)", title: "Connect (C)" },
-  { tool: { type: "fixedPoint" }, icon: "fixedPoint", label: "Fixed Point (F)", title: "Fixed Point (F)" },
+  {
+    tool: { type: "fixedPoint" },
+    icon: "fixedPoint",
+    label: "Fixed Point (F)",
+    title: "Fixed Point (F)",
+  },
   { tool: { type: "wire" }, icon: "wire", label: "Wire (W)", title: "Wire (W)" },
   { tool: { type: "jumper" }, icon: "jumper", label: "Jumper (J)", title: "Jumper (J)" },
   { tool: { type: "label" }, icon: "label", label: "Net Label (L)", title: "Net Label (L)" },
@@ -43,7 +48,12 @@ export const PART_TOOLS: readonly PartToolDefinition[] = [
     label: "Electrolytic Capacitor",
     title: "Electrolytic Capacitor",
   },
-  { kind: "capacitor_film", icon: "capacitor_film", label: "Film Capacitor", title: "Film Capacitor" },
+  {
+    kind: "capacitor_film",
+    icon: "capacitor_film",
+    label: "Film Capacitor",
+    title: "Film Capacitor",
+  },
   { kind: "transistor", icon: "transistor", label: "Transistor", title: "Transistor" },
   { kind: "potentiometer", icon: "potentiometer", label: "Potentiometer", title: "Potentiometer" },
   { kind: "jack", icon: "jack", label: "Jack (TRS)", title: "Jack (TRS)" },

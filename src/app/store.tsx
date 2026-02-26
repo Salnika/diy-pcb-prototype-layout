@@ -12,7 +12,6 @@ import {
   isWithinBoard,
   parseProject,
   serializeProject,
-  withUpdatedAt,
 } from "../model";
 import type {
   BoardLabeling,
@@ -28,6 +27,16 @@ import type {
   Trace,
   TraceKind,
 } from "../model";
+import { browserStorageGateway } from "./effects/storageGateway";
+import { actionToAppEvent, type AppEvent } from "./state/events";
+import {
+  initialInteractionState,
+  reduceInteractionState,
+  type InteractionState,
+} from "./state/machine";
+import { applyRedo, applyUndo } from "./state/reducers/historyReducer";
+import { commitProject } from "./state/reducers/projectReducer";
+import { setActiveTabError as setActiveTabErrorState } from "./state/reducers/uiReducer";
 
 export type Tool =
   | { type: "select" }
@@ -72,6 +81,7 @@ export type TabState = Readonly<{
     traceDraft: TraceDraft | null;
     viewport: Viewport;
     lastError: string | null;
+    interaction: InteractionState;
   }>;
 }>;
 
@@ -130,6 +140,7 @@ export type Action =
   | { type: "UPDATE_NET_TRACE_COLOR"; netId: string; color: string }
   | { type: "DELETE_TRACE"; id: string }
   | { type: "SET_VIEWPORT"; viewport: Viewport }
+  | { type: "INTERACTION_EVENT"; event: AppEvent }
   | { type: "CLEAR_ERROR" };
 
 const STORAGE_KEY = "perfboard-designer.project.v1";
@@ -146,6 +157,7 @@ function defaultUiState(): TabState["ui"] {
     traceDraft: null,
     viewport: { scale: 1, pan: { x: 0, y: 0 } },
     lastError: null,
+    interaction: initialInteractionState,
   };
 }
 
@@ -185,7 +197,7 @@ function normalizeTool(nextTool: Tool, previousTool?: Tool): Tool {
 }
 
 function loadProjectFromStorage(key: string): Project | null {
-  const raw = localStorage.getItem(key);
+  const raw = browserStorageGateway.getItem(key);
   if (!raw) return null;
   try {
     return parseProject(raw);
@@ -199,7 +211,9 @@ function createInitialState(): AppState {
   let activeTabId = "";
 
   try {
-    const rawTabs = localStorage.getItem(STORAGE_TABS_KEY) ?? localStorage.getItem(LEGACY_STORAGE_TABS_KEY);
+    const rawTabs =
+      browserStorageGateway.getItem(STORAGE_TABS_KEY) ??
+      browserStorageGateway.getItem(LEGACY_STORAGE_TABS_KEY);
     if (rawTabs) {
       const data = JSON.parse(rawTabs) as unknown;
       if (typeof data === "object" && data && "tabs" in data && Array.isArray((data as any).tabs)) {
@@ -208,7 +222,8 @@ function createInitialState(): AppState {
           const record = records[i];
           if (!record?.id || !record?.projectKey) continue;
           const projectKey = `${STORAGE_PROJECT_PREFIX}${record.id}`;
-          const project = loadProjectFromStorage(projectKey) ?? loadProjectFromStorage(record.projectKey);
+          const project =
+            loadProjectFromStorage(projectKey) ?? loadProjectFromStorage(record.projectKey);
           if (project) tabs.push(makeTabState(project, projectKey, record.id));
           else tabs.push(makeTabState(createNewProject(nextTabName(tabs)), projectKey, record.id));
         }
@@ -224,7 +239,9 @@ function createInitialState(): AppState {
   if (tabs.length === 0) {
     let project = createNewProject("Perfboard Designer");
     try {
-      const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
+      const raw =
+        browserStorageGateway.getItem(STORAGE_KEY) ??
+        browserStorageGateway.getItem(LEGACY_STORAGE_KEY);
       if (raw) project = parseProject(raw);
     } catch {
       // ignore
@@ -287,7 +304,11 @@ export function makeDefaultPart(kind: PartKind, origin: Hole, rotation: Rotation
     case "resistor":
       return { ...base, ref: "R?", footprint: { type: "inline2", span: 6 } };
     case "switch":
-      return { ...base, ref: "SW?", footprint: { type: "to92_inline3", pinNames: ["OUT1", "IN", "OUT2"] } };
+      return {
+        ...base,
+        ref: "SW?",
+        footprint: { type: "to92_inline3", pinNames: ["OUT1", "IN", "OUT2"] },
+      };
     case "diode":
       return { ...base, ref: "D?", footprint: { type: "inline2", span: 4 } };
     case "capacitor":
@@ -301,7 +322,11 @@ export function makeDefaultPart(kind: PartKind, origin: Hole, rotation: Rotation
     case "transistor":
       return { ...base, ref: "Q?", footprint: { type: "to92_inline3" } };
     case "potentiometer":
-      return { ...base, ref: "RV?", footprint: { type: "to92_inline3", pinNames: ["1", "2", "3"] } };
+      return {
+        ...base,
+        ref: "RV?",
+        footprint: { type: "to92_inline3", pinNames: ["1", "2", "3"] },
+      };
     case "jack":
       return { ...base, ref: "J?", footprint: { type: "to92_inline3", pinNames: ["T", "R", "S"] } };
     case "power_pos":
@@ -588,9 +613,7 @@ function inferNetlistFromCurrentConnectivity(project: Project): InferredNetlistR
   if (netlist.length === 0) {
     return {
       netlist,
-      warnings: [
-        "Auto-layout: empty netlist and no usable connectivity found in existing traces.",
-      ],
+      warnings: ["Auto-layout: empty netlist and no usable connectivity found in existing traces."],
     };
   }
 
@@ -612,35 +635,14 @@ function toggleFixedHoles(holes: readonly Hole[], hole: Hole): readonly Hole[] {
 }
 
 function commit(state: AppState, nextProject: Project): AppState {
-  const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
-  if (activeIndex < 0) return state;
-  const active = state.tabs[activeIndex];
-  if (nextProject === active.project) return state;
-  const withMeta = withUpdatedAt(nextProject);
-  const nextTab: TabState = {
-    ...active,
-    project: withMeta,
-    history: { past: [...active.history.past, active.project], future: [] },
-    ui: { ...active.ui, lastError: null },
-  };
-  const tabs = [...state.tabs];
-  tabs[activeIndex] = nextTab;
-  return { ...state, tabs };
+  return commitProject(state, nextProject);
 }
 
 function setActiveTabError(state: AppState, message: string): AppState {
-  const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
-  if (activeIndex < 0) return state;
-  const tab = state.tabs[activeIndex];
-  const tabs = [...state.tabs];
-  tabs[activeIndex] = {
-    ...tab,
-    ui: { ...tab.ui, traceDraft: null, lastError: message },
-  };
-  return { ...state, tabs };
+  return setActiveTabErrorState(state, message);
 }
 
-function reducer(state: AppState, action: Action): AppState {
+function legacyReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "NEW_PROJECT":
       return (() => {
@@ -677,7 +679,9 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, tabs: [...state.tabs, tab], activeTabId: tab.id };
     }
     case "SET_ACTIVE_TAB":
-      return state.tabs.find((t) => t.id === action.id) ? { ...state, activeTabId: action.id } : state;
+      return state.tabs.find((t) => t.id === action.id)
+        ? { ...state, activeTabId: action.id }
+        : state;
     case "UPDATE_BOARD": {
       const active = state.tabs.find((t) => t.id === state.activeTabId);
       if (!active) return state;
@@ -710,7 +714,12 @@ function reducer(state: AppState, action: Action): AppState {
         const tab = state.tabs[activeIndex];
         const nextTab: TabState = {
           ...tab,
-          ui: { ...tab.ui, tool: normalizeTool(action.tool, tab.ui.tool), traceDraft: null, lastError: null },
+          ui: {
+            ...tab.ui,
+            tool: normalizeTool(action.tool, tab.ui.tool),
+            traceDraft: null,
+            lastError: null,
+          },
         };
         const tabs = [...state.tabs];
         tabs[activeIndex] = nextTab;
@@ -757,44 +766,18 @@ function reducer(state: AppState, action: Action): AppState {
         return { ...state, tabs };
       })();
     case "UNDO": {
-      const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
-      if (activeIndex < 0) return state;
-      const tab = state.tabs[activeIndex];
-      const past = tab.history.past;
-      if (past.length === 0) return state;
-      const previous = past[past.length - 1];
-      const nextTab: TabState = {
-        ...tab,
-        project: previous,
-        history: { past: past.slice(0, -1), future: [tab.project, ...tab.history.future] },
-        ui: { ...tab.ui, traceDraft: null, lastError: null },
-      };
-      const tabs = [...state.tabs];
-      tabs[activeIndex] = nextTab;
-      return { ...state, tabs };
+      return applyUndo(state);
     }
     case "REDO": {
-      const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
-      if (activeIndex < 0) return state;
-      const tab = state.tabs[activeIndex];
-      const future = tab.history.future;
-      if (future.length === 0) return state;
-      const next = future[0];
-      const nextTab: TabState = {
-        ...tab,
-        project: next,
-        history: { past: [...tab.history.past, tab.project], future: future.slice(1) },
-        ui: { ...tab.ui, traceDraft: null, lastError: null },
-      };
-      const tabs = [...state.tabs];
-      tabs[activeIndex] = nextTab;
-      return { ...state, tabs };
+      return applyRedo(state);
     }
     case "ADD_PART": {
       const part = action.part.ref.endsWith("?")
         ? (() => {
             const active = state.tabs.find((t) => t.id === state.activeTabId);
-            return active ? { ...action.part, ref: nextRef(action.part.kind, active.project.parts) } : action.part;
+            return active
+              ? { ...action.part, ref: nextRef(action.part.kind, active.project.parts) }
+              : action.part;
           })()
         : action.part;
       const active = state.tabs.find((t) => t.id === state.activeTabId);
@@ -842,13 +825,17 @@ function reducer(state: AppState, action: Action): AppState {
       const active = state.tabs.find((t) => t.id === state.activeTabId);
       if (!active) return state;
       const parts = active.project.parts.filter((p) => p.id !== action.id);
-      const fixedPartIds = active.project.layoutConstraints.fixedPartIds.filter((id) => id !== action.id);
+      const fixedPartIds = active.project.layoutConstraints.fixedPartIds.filter(
+        (id) => id !== action.id,
+      );
       const layoutConstraints = { ...active.project.layoutConstraints, fixedPartIds };
       const next = commit(state, { ...active.project, parts, layoutConstraints });
       const selection =
         active.ui.selection.type === "part" && active.ui.selection.id === action.id
           ? { type: "none" as const }
-          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? { type: "none" as const });
+          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? {
+              type: "none" as const,
+            });
       const activeIndex = next.tabs.findIndex((t) => t.id === next.activeTabId);
       if (activeIndex < 0) return next;
       const tab = next.tabs[activeIndex];
@@ -900,7 +887,9 @@ function reducer(state: AppState, action: Action): AppState {
       const selection =
         active.ui.selection.type === "netLabel" && active.ui.selection.id === action.id
           ? { type: "none" as const }
-          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? { type: "none" as const });
+          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? {
+              type: "none" as const,
+            });
       const activeIndex = next.tabs.findIndex((t) => t.id === next.activeTabId);
       if (activeIndex < 0) return next;
       const tab = next.tabs[activeIndex];
@@ -956,7 +945,9 @@ function reducer(state: AppState, action: Action): AppState {
       const selection =
         active.ui.selection.type === "net" && active.ui.selection.id === action.id
           ? { type: "none" as const }
-          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? { type: "none" as const });
+          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? {
+              type: "none" as const,
+            });
       const activeIndex = next.tabs.findIndex((t) => t.id === next.activeTabId);
       if (activeIndex < 0) return next;
       const tab = next.tabs[activeIndex];
@@ -967,7 +958,10 @@ function reducer(state: AppState, action: Action): AppState {
     case "TOGGLE_FIXED_PART": {
       const active = state.tabs.find((t) => t.id === state.activeTabId);
       if (!active) return state;
-      const fixedPartIds = toggleFixedPartIds(active.project.layoutConstraints.fixedPartIds, action.id);
+      const fixedPartIds = toggleFixedPartIds(
+        active.project.layoutConstraints.fixedPartIds,
+        action.id,
+      );
       const layoutConstraints = { ...active.project.layoutConstraints, fixedPartIds };
       return commit(state, { ...active.project, layoutConstraints });
     }
@@ -1052,7 +1046,8 @@ function reducer(state: AppState, action: Action): AppState {
       if (!draft) return state;
       const last = draft.nodes[draft.nodes.length - 1];
       // Autorise [A, A] pour representer un fil de longueur 0.
-      if (last && last.x === action.hole.x && last.y === action.hole.y && draft.nodes.length > 1) return state;
+      if (last && last.x === action.hole.x && last.y === action.hole.y && draft.nodes.length > 1)
+        return state;
       const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
       const tab = state.tabs[activeIndex];
       const nextTab: TabState = {
@@ -1070,7 +1065,8 @@ function reducer(state: AppState, action: Action): AppState {
       if (!draft) return state;
       const activeIndex = state.tabs.findIndex((t) => t.id === state.activeTabId);
       const tab = state.tabs[activeIndex];
-      const nextTraceDraft = draft.nodes.length <= 1 ? null : { ...draft, nodes: draft.nodes.slice(0, -1) };
+      const nextTraceDraft =
+        draft.nodes.length <= 1 ? null : { ...draft, nodes: draft.nodes.slice(0, -1) };
       const nextTab: TabState = {
         ...tab,
         ui: { ...tab.ui, traceDraft: nextTraceDraft },
@@ -1164,7 +1160,9 @@ function reducer(state: AppState, action: Action): AppState {
       const selection =
         active.ui.selection.type === "trace" && active.ui.selection.id === action.id
           ? { type: "none" as const }
-          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? { type: "none" as const });
+          : (next.tabs.find((t) => t.id === next.activeTabId)?.ui.selection ?? {
+              type: "none" as const,
+            });
       const activeIndex = next.tabs.findIndex((t) => t.id === next.activeTabId);
       if (activeIndex < 0) return next;
       const tab = next.tabs[activeIndex];
@@ -1182,9 +1180,35 @@ function reducer(state: AppState, action: Action): AppState {
         tabs[activeIndex] = nextTab;
         return { ...state, tabs };
       })();
+    case "INTERACTION_EVENT":
+      return state;
     default:
       return state;
   }
+}
+
+function applyInteractionState(nextState: AppState, action: Action): AppState {
+  const activeIndex = nextState.tabs.findIndex((t) => t.id === nextState.activeTabId);
+  if (activeIndex < 0) return nextState;
+  const activeTab = nextState.tabs[activeIndex];
+  const currentInteraction = activeTab.ui.interaction ?? initialInteractionState;
+  const nextInteraction = reduceInteractionState(currentInteraction, actionToAppEvent(action));
+  if (nextInteraction.mode === currentInteraction.mode) return nextState;
+
+  const tabs = [...nextState.tabs];
+  tabs[activeIndex] = {
+    ...activeTab,
+    ui: {
+      ...activeTab.ui,
+      interaction: nextInteraction,
+    },
+  };
+  return { ...nextState, tabs };
+}
+
+function reducer(state: AppState, action: Action): AppState {
+  const next = legacyReducer(state, action);
+  return applyInteractionState(next, action);
 }
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -1195,24 +1219,18 @@ export function AppStoreProvider(props: Readonly<{ children: React.ReactNode }>)
 
   const persistToken = useMemo(
     () =>
-      state.tabs
-        .map((t) => t.project.meta.updatedAt ?? t.project.meta.createdAt ?? "")
-        .join("|"),
+      state.tabs.map((t) => t.project.meta.updatedAt ?? t.project.meta.createdAt ?? "").join("|"),
     [state.tabs],
   );
 
   useEffect(() => {
-    try {
-      const index = {
-        activeTabId: state.activeTabId,
-        tabs: state.tabs.map((t) => ({ id: t.id, projectKey: t.projectKey })),
-      };
-      localStorage.setItem(STORAGE_TABS_KEY, JSON.stringify(index));
-      for (const tab of state.tabs) {
-        localStorage.setItem(tab.projectKey, serializeProject(tab.project));
-      }
-    } catch {
-      // ignore
+    const index = {
+      activeTabId: state.activeTabId,
+      tabs: state.tabs.map((t) => ({ id: t.id, projectKey: t.projectKey })),
+    };
+    browserStorageGateway.setItem(STORAGE_TABS_KEY, JSON.stringify(index));
+    for (const tab of state.tabs) {
+      browserStorageGateway.setItem(tab.projectKey, serializeProject(tab.project));
     }
   }, [persistToken, state.activeTabId, state.tabs.length]);
 
@@ -1228,9 +1246,7 @@ export function AppStoreProvider(props: Readonly<{ children: React.ReactNode }>)
 export function useAppState(): ActiveAppState {
   const state = useContext(AppStateContext);
   if (!state) throw new Error("useAppState must be used within AppStoreProvider");
-  const active =
-    state.tabs.find((t) => t.id === state.activeTabId) ??
-    state.tabs[0];
+  const active = state.tabs.find((t) => t.id === state.activeTabId) ?? state.tabs[0];
   if (!active) throw new Error("No active tab");
   return {
     ...state,
@@ -1245,6 +1261,37 @@ export function useAppDispatch(): React.Dispatch<Action> {
   const dispatch = useContext(AppDispatchContext);
   if (!dispatch) throw new Error("useAppDispatch must be used within AppStoreProvider");
   return dispatch;
+}
+
+export function useAppSelector<T>(selector: (state: ActiveAppState) => T): T {
+  return selector(useAppState());
+}
+
+export function useAppActions() {
+  const dispatch = useAppDispatch();
+  return useMemo(
+    () => ({
+      dispatch,
+      setTool: (tool: Tool) => dispatch({ type: "SET_TOOL", tool }),
+      select: (selection: Selection) => dispatch({ type: "SELECT", selection }),
+      undo: () => dispatch({ type: "UNDO" }),
+      redo: () => dispatch({ type: "REDO" }),
+      addTab: (name?: string) => dispatch({ type: "ADD_TAB", name }),
+      setActiveTab: (id: string) => dispatch({ type: "SET_ACTIVE_TAB", id }),
+      updateBoard: (width: number, height: number) =>
+        dispatch({ type: "UPDATE_BOARD", width, height }),
+      updateBoardLabeling: (labeling: BoardLabeling) =>
+        dispatch({ type: "UPDATE_BOARD_LABELING", labeling }),
+      runAutoLayout: (options?: {
+        seed?: number;
+        iterations?: number;
+        allowRotate?: boolean;
+        restarts?: number;
+      }) => dispatch({ type: "RUN_AUTO_LAYOUT", options }),
+      clearError: () => dispatch({ type: "CLEAR_ERROR" }),
+    }),
+    [dispatch],
+  );
 }
 
 export function rotatePart(part: Part): Part {

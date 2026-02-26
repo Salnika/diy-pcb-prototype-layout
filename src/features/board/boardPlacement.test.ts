@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { applyInline2Placement, createInline2Part, isInline2Kind, sameTerminal } from "./boardPlacement";
+import {
+  applyInline2Placement,
+  createInline2Part,
+  isInline2Kind,
+  sameTerminal,
+} from "./boardPlacement";
 import { makeInline2Part } from "../../test/fixtures";
 
 describe("boardPlacement", () => {
@@ -11,15 +16,38 @@ describe("boardPlacement", () => {
   });
 
   it("compares terminals", () => {
-    expect(sameTerminal({ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p1", pinId: "1" })).toBe(true);
-    expect(sameTerminal({ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p1", pinId: "2" })).toBe(false);
-    expect(sameTerminal({ kind: "hole", hole: { x: 1, y: 1 } }, { kind: "hole", hole: { x: 1, y: 1 } })).toBe(true);
-    expect(sameTerminal({ kind: "hole", hole: { x: 1, y: 1 } }, { kind: "pin", partId: "p1", pinId: "1" })).toBe(false);
+    expect(
+      sameTerminal(
+        { kind: "pin", partId: "p1", pinId: "1" },
+        { kind: "pin", partId: "p1", pinId: "1" },
+      ),
+    ).toBe(true);
+    expect(
+      sameTerminal(
+        { kind: "pin", partId: "p1", pinId: "1" },
+        { kind: "pin", partId: "p1", pinId: "2" },
+      ),
+    ).toBe(false);
+    expect(
+      sameTerminal({ kind: "hole", hole: { x: 1, y: 1 } }, { kind: "hole", hole: { x: 1, y: 1 } }),
+    ).toBe(true);
+    expect(
+      sameTerminal(
+        { kind: "hole", hole: { x: 1, y: 1 } },
+        { kind: "pin", partId: "p1", pinId: "1" },
+      ),
+    ).toBe(false);
     expect(sameTerminal({ kind: "weird" } as any, { kind: "weird" } as any)).toBe(false);
   });
 
   it("applies inline placement for straight and diagonal pin pairs", () => {
-    const base = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 }, span: 2, pinLabels: ["A", "B"] });
+    const base = makeInline2Part({
+      id: "p1",
+      ref: "R1",
+      origin: { x: 1, y: 1 },
+      span: 2,
+      pinLabels: ["A", "B"],
+    });
     const horiz = applyInline2Placement(base, { x: 1, y: 1 }, { x: 4, y: 1 });
     const left = applyInline2Placement(base, { x: 4, y: 1 }, { x: 1, y: 1 });
     const down = applyInline2Placement(base, { x: 2, y: 2 }, { x: 2, y: 5 });
@@ -39,7 +67,13 @@ describe("boardPlacement", () => {
       footprint: { type: "to92_inline3" as const },
     };
     expect(applyInline2Placement(to92, { x: 1, y: 1 }, { x: 2, y: 2 })).toBeNull();
-    expect(applyInline2Placement(makeInline2Part({ id: "p1", ref: "R1" }), { x: 1, y: 1 }, { x: 1, y: 1 })).toBeNull();
+    expect(
+      applyInline2Placement(
+        makeInline2Part({ id: "p1", ref: "R1" }),
+        { x: 1, y: 1 },
+        { x: 1, y: 1 },
+      ),
+    ).toBeNull();
   });
 
   it("creates inline2 parts from pin pairs", () => {

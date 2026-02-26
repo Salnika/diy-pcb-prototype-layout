@@ -1,166 +1,44 @@
-import { useEffect, useMemo, useState } from "react";
-import { computeNetIndex, holeKey, netColor } from "../model";
-import { BoardView } from "../features/board/BoardView";
-import { featureFlags } from "./featureFlags";
-import { AppHeader } from "./components/AppHeader";
-import { InspectorPanel } from "./components/InspectorPanel";
-import { TabsBar } from "./components/TabsBar";
-import { ToolPalette } from "./components/ToolPalette";
-import {
-  INSPECTOR_COLLAPSE_KEY,
-  LEGACY_INSPECTOR_COLLAPSE_KEY,
-  clampBoardSize,
-  toggleBoardLabeling,
-} from "./appUtils";
-import { useAppKeyboardShortcuts } from "./hooks/useAppKeyboardShortcuts";
-import { useProjectIO } from "./hooks/useProjectIO";
-import { useAppDispatch, useAppState } from "./store";
+import { useEffect, useState } from "react";
+import { AppHeaderContainer } from "./containers/AppHeaderContainer";
+import { TabsBarContainer } from "./containers/TabsBarContainer";
+import { ToolPaletteContainer } from "./containers/ToolPaletteContainer";
+import { BoardContainer } from "../features/board/containers/BoardContainer";
+import { InspectorContainer } from "../features/inspector/containers/InspectorContainer";
+import { INSPECTOR_COLLAPSE_KEY, LEGACY_INSPECTOR_COLLAPSE_KEY } from "./appUtils";
+import { useStorageGateway } from "./effects/storageGateway";
 import * as styles from "./App.css";
 
 export function App() {
-  const state = useAppState();
-  const dispatch = useAppDispatch();
+  const storage = useStorageGateway();
   const [inspectorCollapsed, setInspectorCollapsed] = useState(() => {
-    try {
-      const current = localStorage.getItem(INSPECTOR_COLLAPSE_KEY);
-      if (current !== null) return current === "1";
-      return localStorage.getItem(LEGACY_INSPECTOR_COLLAPSE_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
-
-  const { tool, selection, traceDraft } = state.ui;
-
-  const canUndo = state.history.past.length > 0;
-  const canRedo = state.history.future.length > 0;
-  const showAutoLayout = featureFlags.autoLayout;
-
-  const { importJsonFile, exportJson, exportSvg, exportPng, exportBomCsv } = useProjectIO({
-    project: state.project,
-    dispatch,
-  });
-
-  useAppKeyboardShortcuts({
-    dispatch,
-    tool,
-    selection,
-    traceDraft,
-    parts: state.project.parts,
+    const current = storage.getItem(INSPECTOR_COLLAPSE_KEY);
+    if (current !== null) return current === "1";
+    return storage.getItem(LEGACY_INSPECTOR_COLLAPSE_KEY) === "1";
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(INSPECTOR_COLLAPSE_KEY, inspectorCollapsed ? "1" : "0");
-    } catch {
-      // ignore
-    }
-  }, [inspectorCollapsed]);
-
-  const selectedPart =
-    selection.type === "part" ? state.project.parts.find((part) => part.id === selection.id) ?? null : null;
-  const selectedTrace =
-    selection.type === "trace" ? state.project.traces.find((trace) => trace.id === selection.id) ?? null : null;
-  const selectedNetLabel =
-    selection.type === "netLabel"
-      ? state.project.netLabels.find((label) => label.id === selection.id) ?? null
-      : null;
-  const selectedNet =
-    selection.type === "net" ? state.project.netlist.find((net) => net.id === selection.id) ?? null : null;
-  const selectedPartFixed =
-    !!selectedPart && state.project.layoutConstraints.fixedPartIds.includes(selectedPart.id);
-  const board = state.project.board;
-  const netIndex = useMemo(() => computeNetIndex(state.project), [state.project]);
-  const selectedTraceNetId = useMemo(() => {
-    if (!selectedTrace) return null;
-    const first = selectedTrace.nodes[0];
-    if (!first) return null;
-    return netIndex.holeToNetId.get(holeKey(first)) ?? null;
-  }, [netIndex.holeToNetId, selectedTrace]);
-  const selectedTraceNetName = useMemo(() => {
-    if (!selectedTraceNetId) return null;
-    return netIndex.netIdToName.get(selectedTraceNetId) ?? null;
-  }, [netIndex.netIdToName, selectedTraceNetId]);
-  const selectedTraceDisplayColor = useMemo(() => {
-    if (!selectedTrace) return null;
-    if (selectedTrace.color) return selectedTrace.color;
-    const netId = selectedTraceNetId ?? selectedTrace.id;
-    const netName = netIndex.netIdToName.get(netId);
-    return netColor(netId, netName);
-  }, [netIndex.netIdToName, selectedTrace, selectedTraceNetId]);
-
-  function updateBoardSize(nextWidth: number, nextHeight: number) {
-    dispatch({
-      type: "UPDATE_BOARD",
-      width: clampBoardSize(nextWidth),
-      height: clampBoardSize(nextHeight),
-    });
-  }
-
-  function handleRunAutoLayout() {
-    const ok = window.confirm(
-      "Auto-layout: optimize placement and regenerate traces from connections. Continue?",
-    );
-    if (!ok) return;
-    dispatch({ type: "RUN_AUTO_LAYOUT" });
-  }
+    storage.setItem(INSPECTOR_COLLAPSE_KEY, inspectorCollapsed ? "1" : "0");
+  }, [inspectorCollapsed, storage]);
 
   return (
     <div className={styles.app}>
-      <AppHeader
-        canUndo={canUndo}
-        canRedo={canRedo}
-        showAutoLayout={showAutoLayout}
-        lastError={state.ui.lastError}
-        onUndo={() => dispatch({ type: "UNDO" })}
-        onRedo={() => dispatch({ type: "REDO" })}
-        onRunAutoLayout={handleRunAutoLayout}
-        onExportJson={exportJson}
-        onImportJsonFile={importJsonFile}
-        onExportSvg={exportSvg}
-        onExportPng={exportPng}
-      />
+      <AppHeaderContainer />
 
-      <TabsBar
-        tabs={state.tabs}
-        activeTabId={state.activeTabId}
-        onSelectTab={(id) => dispatch({ type: "SET_ACTIVE_TAB", id })}
-        onAddTab={() => dispatch({ type: "ADD_TAB" })}
-      />
+      <TabsBarContainer />
 
       <div
         className={styles.main}
         style={{ gridTemplateColumns: `max-content 1fr ${inspectorCollapsed ? "44px" : "300px"}` }}
       >
-        <ToolPalette tool={tool} onSetTool={(nextTool) => dispatch({ type: "SET_TOOL", tool: nextTool })} />
+        <ToolPaletteContainer />
 
         <main className={styles.centerPane}>
-          <BoardView />
+          <BoardContainer />
         </main>
 
-        <InspectorPanel
+        <InspectorContainer
           collapsed={inspectorCollapsed}
-          board={board}
-          selection={selection}
-          selectedPart={selectedPart}
-          selectedTrace={selectedTrace}
-          selectedNetLabel={selectedNetLabel}
-          selectedNet={selectedNet}
-          selectedPartFixed={selectedPartFixed}
-          selectedTraceNetId={selectedTraceNetId}
-          selectedTraceNetName={selectedTraceNetName}
-          selectedTraceDisplayColor={selectedTraceDisplayColor}
-          projectParts={state.project.parts}
-          projectNets={state.project.netlist}
-          fixedPartCount={state.project.layoutConstraints.fixedPartIds.length}
-          fixedHoleCount={state.project.layoutConstraints.fixedHoles.length}
-          dispatch={dispatch}
           onToggleCollapsed={() => setInspectorCollapsed((prev) => !prev)}
-          onUpdateBoardSize={updateBoardSize}
-          onToggleBoardLabeling={() =>
-            dispatch({ type: "UPDATE_BOARD_LABELING", labeling: toggleBoardLabeling(board.labeling) })
-          }
-          onExportBomCsv={exportBomCsv}
         />
       </div>
     </div>

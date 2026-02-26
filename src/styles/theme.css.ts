@@ -48,10 +48,8 @@ export const themeClass = createTheme(vars, {
     warning: "#ffd166",
   },
   font: {
-    body:
-      'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
-    mono:
-      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    body: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+    mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
   },
   space: {
     xs: "4px",
@@ -69,4 +67,3 @@ export const themeClass = createTheme(vars, {
     sm: "0 1px 0 rgba(0,0,0,0.2), 0 12px 30px rgba(0,0,0,0.35)",
   },
 });
-

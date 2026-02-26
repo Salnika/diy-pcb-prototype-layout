@@ -39,13 +39,27 @@ export function AppHeader({
     <header className={styles.topBar}>
       <div className={styles.brand}>Perfboard Designer</div>
       <div className={styles.topActions}>
-        <button type="button" className={styles.iconButton} disabled={!canUndo} onClick={onUndo} title="Undo" aria-label="Undo">
+        <button
+          type="button"
+          className={styles.iconButton}
+          disabled={!canUndo}
+          onClick={onUndo}
+          title="Undo"
+          aria-label="Undo"
+        >
           <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
             <path d="M9 7H4v5" />
             <path d="M4 12c1.6-3.4 4.7-5 8-5 4.4 0 8 3.6 8 8" />
           </svg>
         </button>
-        <button type="button" className={styles.iconButton} disabled={!canRedo} onClick={onRedo} title="Redo" aria-label="Redo">
+        <button
+          type="button"
+          className={styles.iconButton}
+          disabled={!canRedo}
+          onClick={onRedo}
+          title="Redo"
+          aria-label="Redo"
+        >
           <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
             <path d="M15 7h5v5" />
             <path d="M20 12c-1.6-3.4-4.7-5-8-5-4.4 0-8 3.6-8 8" />
@@ -57,7 +71,11 @@ export function AppHeader({
           </button>
         ) : null}
 
-        <button type="button" className={styles.smallButton} onClick={() => importInputRef.current?.click()}>
+        <button
+          type="button"
+          className={styles.smallButton}
+          onClick={() => importInputRef.current?.click()}
+        >
           Import JSON
         </button>
         <input

@@ -55,16 +55,28 @@ describe("BoardSvgLayers", () => {
 
   it("renders board holes with different radii based on selection/hover", () => {
     const { container, rerender } = renderSvg(
-      <BoardHolesLayer holes={[{ x: 0, y: 0 }, { x: 1, y: 0 }]} hoverHole={{ x: 1, y: 0 }} selection={{ type: "none" }} />,
+      <BoardHolesLayer
+        holes={[
+          { x: 0, y: 0 },
+          { x: 1, y: 0 },
+        ]}
+        hoverHole={{ x: 1, y: 0 }}
+        selection={{ type: "none" }}
+      />,
     );
     const circlesIdle = [...container.querySelectorAll("circle")];
-    expect(circlesIdle.map((c) => c.getAttribute("r"))).toEqual(expect.arrayContaining(["1.6", "2.5"]));
+    expect(circlesIdle.map((c) => c.getAttribute("r"))).toEqual(
+      expect.arrayContaining(["1.6", "2.5"]),
+    );
 
     rerender(
       <svg>
         <g>
           <BoardHolesLayer
-            holes={[{ x: 0, y: 0 }, { x: 1, y: 0 }]}
+            holes={[
+              { x: 0, y: 0 },
+              { x: 1, y: 0 },
+            ]}
             hoverHole={{ x: 1, y: 0 }}
             selection={{ type: "part", id: "p1" }}
           />
@@ -72,7 +84,9 @@ describe("BoardSvgLayers", () => {
       </svg>,
     );
     const circlesActive = [...container.querySelectorAll("circle")];
-    expect(circlesActive.map((c) => c.getAttribute("r"))).toEqual(expect.arrayContaining(["1.9", "2.8"]));
+    expect(circlesActive.map((c) => c.getAttribute("r"))).toEqual(
+      expect.arrayContaining(["1.9", "2.8"]),
+    );
   });
 
   it("handles trace selection, erase and drag handles", () => {
@@ -81,7 +95,10 @@ describe("BoardSvgLayers", () => {
     const onStartTraceDrag = vi.fn();
     const onStartTraceSegmentDrag = vi.fn();
     const onStartTraceNodeDrag = vi.fn();
-    const trace = makeTrace("t1", [{ x: 0, y: 0 }, { x: 1, y: 0 }]);
+    const trace = makeTrace("t1", [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+    ]);
     const netIndex = {
       ...emptyNetIndex,
       holeToNetId: new Map([["0,0", "n1"]]),
@@ -141,7 +158,11 @@ describe("BoardSvgLayers", () => {
     const onStartTraceDrag = vi.fn();
     const onStartTraceSegmentDrag = vi.fn();
     const onStartTraceNodeDrag = vi.fn();
-    const trace = makeTrace("t2", [{ x: 0, y: 0 }, { x: 0, y: 2 }, { x: 2, y: 2 }]);
+    const trace = makeTrace("t2", [
+      { x: 0, y: 0 },
+      { x: 0, y: 2 },
+      { x: 2, y: 2 },
+    ]);
 
     const { container } = renderSvg(
       <TraceLayer
@@ -164,14 +185,27 @@ describe("BoardSvgLayers", () => {
   });
 
   it("renders trace draft with and without hover extension", () => {
-    const draft = { kind: "wire" as const, layer: "bottom" as const, nodes: [{ x: 0, y: 0 }, { x: 1, y: 0 }] };
-    const { container, rerender } = renderSvg(<TraceDraftLayer traceDraft={draft} hoverHole={{ x: 2, y: 0 }} tool={{ type: "wire" }} />);
+    const draft = {
+      kind: "wire" as const,
+      layer: "bottom" as const,
+      nodes: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+    };
+    const { container, rerender } = renderSvg(
+      <TraceDraftLayer traceDraft={draft} hoverHole={{ x: 2, y: 0 }} tool={{ type: "wire" }} />,
+    );
     expect(container.querySelector("polyline")?.getAttribute("points")?.split(" ").length).toBe(3);
 
     rerender(
       <svg>
         <g>
-          <TraceDraftLayer traceDraft={draft} hoverHole={{ x: 2, y: 0 }} tool={{ type: "select" }} />
+          <TraceDraftLayer
+            traceDraft={draft}
+            hoverHole={{ x: 2, y: 0 }}
+            tool={{ type: "select" }}
+          />
         </g>
       </svg>,
     );
@@ -250,7 +284,7 @@ describe("BoardSvgLayers", () => {
       netIdToName: new Map([["n1", "GND"]]),
     };
 
-    const { container, rerender } = renderSvg(
+    const { container: _container, rerender } = renderSvg(
       <NetLabelLayer
         labels={[label]}
         labelDraftId={null}

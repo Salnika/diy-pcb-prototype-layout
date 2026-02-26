@@ -22,11 +22,6 @@ export const brand = style({
   letterSpacing: "0.2px",
 });
 
-export const topHint = style({
-  color: vars.color.mutedText,
-  fontSize: 13,
-});
-
 export const topActions = style({
   display: "flex",
   alignItems: "center",
@@ -232,12 +227,6 @@ export const toolIcon = style({
   strokeWidth: 1.8,
   strokeLinecap: "round",
   strokeLinejoin: "round",
-});
-
-export const toolKbd = style({
-  fontFamily: vars.font.mono,
-  fontSize: 11,
-  color: vars.color.mutedText,
 });
 
 export const divider = style({

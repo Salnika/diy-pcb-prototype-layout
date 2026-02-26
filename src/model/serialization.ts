@@ -49,7 +49,11 @@ function expectBool(value: unknown, path: string): boolean {
   return value;
 }
 
-function expectOneOf<T extends string | number>(value: unknown, allowed: readonly T[], path: string): T {
+function expectOneOf<T extends string | number>(
+  value: unknown,
+  allowed: readonly T[],
+  path: string,
+): T {
   if (!allowed.includes(value as T)) {
     throw new Error(`${path} must be one of: ${allowed.join(", ")}`);
   }
@@ -246,11 +250,7 @@ export function parseProject(json: string): Project {
   const data = JSON.parse(json) as unknown;
   if (!isObject(data)) throw new Error("Project must be a JSON object");
 
-  const schemaVersion = expectOneOf(
-    data.schemaVersion,
-    ["1.0", "1.1"] as const,
-    "schemaVersion",
-  );
+  const schemaVersion = expectOneOf(data.schemaVersion, ["1.0", "1.1"] as const, "schemaVersion");
 
   const metaRaw = data.meta;
   const meta = isObject(metaRaw)
@@ -277,7 +277,9 @@ export function parseProject(json: string): Project {
 
   const netlist = schemaVersion === "1.1" ? parseNetlist((data as any).netlist) : [];
   const layoutConstraints =
-    schemaVersion === "1.1" ? parseLayoutConstraints((data as any).layoutConstraints) : { fixedPartIds: [], fixedHoles: [] };
+    schemaVersion === "1.1"
+      ? parseLayoutConstraints((data as any).layoutConstraints)
+      : { fixedPartIds: [], fixedHoles: [] };
 
   return {
     schemaVersion: SCHEMA_VERSION,

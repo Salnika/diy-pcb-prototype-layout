@@ -14,13 +14,25 @@ describe("nets", () => {
 
   it("moves connected trace endpoints", () => {
     const traces = [
-      makeTrace("t1", [{ x: 1, y: 1 }, { x: 1, y: 3 }]),
-      makeTrace("t2", [{ x: 5, y: 5 }, { x: 6, y: 5 }]),
+      makeTrace("t1", [
+        { x: 1, y: 1 },
+        { x: 1, y: 3 },
+      ]),
+      makeTrace("t2", [
+        { x: 5, y: 5 },
+        { x: 6, y: 5 },
+      ]),
       { id: "t3", kind: "wire" as const, layer: "bottom" as const, nodes: [] },
     ];
-    const moved = new Map([["1,1", { x: 2, y: 1 }], ["1,3", { x: 2, y: 3 }]]);
+    const moved = new Map([
+      ["1,1", { x: 2, y: 1 }],
+      ["1,3", { x: 2, y: 3 }],
+    ]);
     const updated = moveConnectedTraceEndpoints(traces, moved);
-    expect(updated[0].nodes).toEqual([{ x: 2, y: 1 }, { x: 2, y: 3 }]);
+    expect(updated[0].nodes).toEqual([
+      { x: 2, y: 1 },
+      { x: 2, y: 3 },
+    ]);
     expect(updated[1]).toBe(traces[1]);
     expect(moveConnectedTraceEndpoints(traces, new Map())).toBe(traces);
   });
@@ -30,7 +42,12 @@ describe("nets", () => {
     const p2 = makeInline2Part({ id: "p2", ref: "R2", origin: { x: 1, y: 3 }, span: 2 });
     const project = makeProject({
       parts: [p1, p2],
-      traces: [makeTrace("t1", [{ x: 1, y: 1 }, { x: 1, y: 3 }])],
+      traces: [
+        makeTrace("t1", [
+          { x: 1, y: 1 },
+          { x: 1, y: 3 },
+        ]),
+      ],
       netLabels: [makeLabel("l1", { x: 1, y: 1 }, "VCC"), makeLabel("l2", { x: 1, y: 3 }, "POWER")],
     });
 

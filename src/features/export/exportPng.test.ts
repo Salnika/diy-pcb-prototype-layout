@@ -125,7 +125,9 @@ describe("exportPng", () => {
       return originalCreateElement(tag);
     }) as typeof document.createElement);
 
-    await expect(svgStringToPngBlob("<svg/>", { width: 10, height: 20 })).rejects.toThrow("PNG export failed");
+    await expect(svgStringToPngBlob("<svg/>", { width: 10, height: 20 })).rejects.toThrow(
+      "PNG export failed",
+    );
   });
 
   it("downloads png through downloadBlob", async () => {

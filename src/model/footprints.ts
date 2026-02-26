@@ -52,7 +52,10 @@ function defaultTo92PinNames(kind: Part["kind"]): readonly [string, string, stri
   }
 }
 
-function to92Inline3(kind: Part["kind"], pinNames?: readonly [string, string, string]): readonly PinDef[] {
+function to92Inline3(
+  kind: Part["kind"],
+  pinNames?: readonly [string, string, string],
+): readonly PinDef[] {
   const names = pinNames ?? defaultTo92PinNames(kind);
   if (kind === "switch") {
     return [
@@ -69,11 +72,7 @@ function to92Inline3(kind: Part["kind"], pinNames?: readonly [string, string, st
   ];
 }
 
-function free2(
-  dx: number,
-  dy: number,
-  pinLabels?: readonly [string, string],
-): readonly PinDef[] {
+function free2(dx: number, dy: number, pinLabels?: readonly [string, string]): readonly PinDef[] {
   return [
     { pinId: "1", pinLabel: pinLabels?.[0] ?? "1", dx: 0, dy: 0 },
     { pinId: "2", pinLabel: pinLabels?.[1] ?? "2", dx, dy },

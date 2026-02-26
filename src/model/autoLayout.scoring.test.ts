@@ -4,7 +4,12 @@ import { holeKey } from "./hole";
 import { makeInline2Part, makeNet, makeProject } from "../test/fixtures";
 import type { Part } from "./types";
 
-function makeSinglePart(id: string, ref: string, origin: { x: number; y: number }, kind: Part["kind"]): Part {
+function makeSinglePart(
+  id: string,
+  ref: string,
+  origin: { x: number; y: number },
+  kind: Part["kind"],
+): Part {
   return {
     id,
     ref,
@@ -29,20 +34,33 @@ describe("autoLayout.scoring", () => {
           ],
           "SIG",
         ),
-        makeNet("n2", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p3", pinId: "1" }], "ALT"),
+        makeNet(
+          "n2",
+          [
+            { kind: "pin", partId: "p1", pinId: "1" },
+            { kind: "pin", partId: "p3", pinId: "1" },
+          ],
+          "ALT",
+        ),
       ],
     });
     const map = buildPinNetMap(project);
-    expect([...map.get("p1:1") ?? []].sort()).toEqual(["n1", "n2"]);
-    expect([...map.get("p2:1") ?? []]).toEqual(["n1"]);
+    expect([...(map.get("p1:1") ?? [])].sort()).toEqual(["n1", "n2"]);
+    expect([...(map.get("p2:1") ?? [])]).toEqual(["n1"]);
     expect(map.has("hole:1,1")).toBe(false);
   });
 
   it("computes net cost and warns when pin terminals are missing", () => {
     const project = makeProject({
       netlist: [
-        makeNet("n1", [{ kind: "hole", hole: { x: 0, y: 0 } }, { kind: "hole", hole: { x: 4, y: 2 } }]),
-        makeNet("n2", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p2", pinId: "1" }]),
+        makeNet("n1", [
+          { kind: "hole", hole: { x: 0, y: 0 } },
+          { kind: "hole", hole: { x: 4, y: 2 } },
+        ]),
+        makeNet("n2", [
+          { kind: "pin", partId: "p1", pinId: "1" },
+          { kind: "pin", partId: "p2", pinId: "1" },
+        ]),
       ],
     });
     const warnings: string[] = [];
@@ -79,12 +97,21 @@ describe("autoLayout.scoring", () => {
     const p2 = makeSinglePart("p2", "P2", { x: 1, y: 1 }, "power_neg");
     const baseProject = makeProject({
       parts: [p1, p2],
-      netlist: [makeNet("n1", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p2", pinId: "1" }])],
+      netlist: [
+        makeNet("n1", [
+          { kind: "pin", partId: "p1", pinId: "1" },
+          { kind: "pin", partId: "p2", pinId: "1" },
+        ]),
+      ],
       fixedHoles: [{ x: 1, y: 1 }],
     });
 
-    const baselineRotations = new Map(baseProject.parts.map((part) => [part.id, part.placement.rotation]));
-    const baselineOrigins = new Map(baseProject.parts.map((part) => [part.id, part.placement.origin]));
+    const baselineRotations = new Map(
+      baseProject.parts.map((part) => [part.id, part.placement.rotation]),
+    );
+    const baselineOrigins = new Map(
+      baseProject.parts.map((part) => [part.id, part.placement.origin]),
+    );
     const edges = buildPartEdges(baseProject);
 
     const linkedCost = computeCost(
@@ -148,14 +175,26 @@ describe("autoLayout.scoring", () => {
 
   it("ignores short nets in net cost", () => {
     const warnings: string[] = [];
-    const metrics = computeNetCost(makeProject({ netlist: [makeNet("n", [{ kind: "hole", hole: { x: 1, y: 1 } }])] }), new Map(), warnings);
+    const metrics = computeNetCost(
+      makeProject({ netlist: [makeNet("n", [{ kind: "hole", hole: { x: 1, y: 1 } }])] }),
+      new Map(),
+      warnings,
+    );
     expect(metrics).toEqual({ cost: 0, span: 0, misalign: 0 });
     expect(warnings).toEqual([]);
   });
 
   it("includes missing adjacency centers gracefully", () => {
     const p1 = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 } });
-    const project = makeProject({ parts: [p1], netlist: [makeNet("n1", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "ghost", pinId: "1" }])] });
+    const project = makeProject({
+      parts: [p1],
+      netlist: [
+        makeNet("n1", [
+          { kind: "pin", partId: "p1", pinId: "1" },
+          { kind: "pin", partId: "ghost", pinId: "1" },
+        ]),
+      ],
+    });
     const cost = computeCost(
       project,
       [p1],

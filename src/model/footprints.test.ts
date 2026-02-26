@@ -41,7 +41,11 @@ describe("getPartPins", () => {
 
     const pins = getPartPins(sw);
     expect(pins.map((pin) => pin.pinLabel)).toEqual(["OUT1", "IN", "OUT2"]);
-    expect(pins.map((pin) => pin.hole)).toEqual([{ x: 2, y: 2 }, { x: 3, y: 3 }, { x: 2, y: 4 }]);
+    expect(pins.map((pin) => pin.hole)).toEqual([
+      { x: 2, y: 2 },
+      { x: 3, y: 3 },
+      { x: 2, y: 4 },
+    ]);
   });
 
   it("handles free2, single and dip footprints", () => {
@@ -67,9 +71,27 @@ describe("getPartPins", () => {
   });
 
   it("supports all rotations and nullish labels fallbacks", () => {
-    const part0 = makeInline2Part({ id: "p0", ref: "R0", origin: { x: 3, y: 3 }, rotation: 0, span: 1 });
-    const part180 = makeInline2Part({ id: "p180", ref: "R180", origin: { x: 3, y: 3 }, rotation: 180, span: 1 });
-    const part270 = makeInline2Part({ id: "p270", ref: "R270", origin: { x: 3, y: 3 }, rotation: 270, span: 1 });
+    const part0 = makeInline2Part({
+      id: "p0",
+      ref: "R0",
+      origin: { x: 3, y: 3 },
+      rotation: 0,
+      span: 1,
+    });
+    const part180 = makeInline2Part({
+      id: "p180",
+      ref: "R180",
+      origin: { x: 3, y: 3 },
+      rotation: 180,
+      span: 1,
+    });
+    const part270 = makeInline2Part({
+      id: "p270",
+      ref: "R270",
+      origin: { x: 3, y: 3 },
+      rotation: 270,
+      span: 1,
+    });
 
     expect(getPartPins(part0)[1].hole).toEqual({ x: 4, y: 3 });
     expect(getPartPins(part180)[1].hole).toEqual({ x: 2, y: 3 });
@@ -77,7 +99,10 @@ describe("getPartPins", () => {
 
     const oddTo92 = {
       ...makeTo92Part({ id: "rv", ref: "RV1", kind: "potentiometer", pinNames: ["", "", ""] }),
-      footprint: { type: "to92_inline3" as const, pinNames: [undefined, undefined, undefined] as any },
+      footprint: {
+        type: "to92_inline3" as const,
+        pinNames: [undefined, undefined, undefined] as any,
+      },
     };
     const oddFree2 = {
       ...makeInline2Part({ id: "f1", ref: "F1" }),
@@ -90,7 +115,10 @@ describe("getPartPins", () => {
     const oddSwitch = {
       ...makeTo92Part({ id: "sw", ref: "SW1", kind: "potentiometer", pinNames: ["", "", ""] }),
       kind: "switch" as const,
-      footprint: { type: "to92_inline3" as const, pinNames: [undefined, undefined, undefined] as any },
+      footprint: {
+        type: "to92_inline3" as const,
+        pinNames: [undefined, undefined, undefined] as any,
+      },
     };
 
     expect(getPartPins(oddTo92).map((p) => p.pinLabel)).toEqual(["1", "2", "3"]);

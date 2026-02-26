@@ -75,5 +75,3 @@ export type SearchNode = Readonly<{
   g: number;
   f: number;
 }>;
-
-export type PinIndex = ReadonlyMap<string, Hole>;

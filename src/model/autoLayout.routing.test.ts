@@ -18,7 +18,16 @@ describe("autoLayout.routing", () => {
     const project = makeProject({
       width: 5,
       height: 3,
-      netlist: [makeNet("n1", [{ kind: "hole", hole: { x: 0, y: 1 } }, { kind: "hole", hole: { x: 4, y: 1 } }], "SIG")],
+      netlist: [
+        makeNet(
+          "n1",
+          [
+            { kind: "hole", hole: { x: 0, y: 1 } },
+            { kind: "hole", hole: { x: 4, y: 1 } },
+          ],
+          "SIG",
+        ),
+      ],
     });
     const result = tracesFromNetlist(project);
     expect(result.complete).toBe(true);
@@ -33,7 +42,16 @@ describe("autoLayout.routing", () => {
       width: 3,
       height: 1,
       fixedHoles: [{ x: 1, y: 0 }],
-      netlist: [makeNet("n1", [{ kind: "hole", hole: { x: 0, y: 0 } }, { kind: "hole", hole: { x: 2, y: 0 } }], "A")],
+      netlist: [
+        makeNet(
+          "n1",
+          [
+            { kind: "hole", hole: { x: 0, y: 0 } },
+            { kind: "hole", hole: { x: 2, y: 0 } },
+          ],
+          "A",
+        ),
+      ],
     });
     const result = tracesFromNetlist(project);
     expect(result.complete).toBe(false);
@@ -43,7 +61,16 @@ describe("autoLayout.routing", () => {
 
   it("adds missing-pin warning and skips underspecified nets", () => {
     const project = makeProject({
-      netlist: [makeNet("n1", [{ kind: "pin", partId: "missing", pinId: "1" }, { kind: "hole", hole: { x: 1, y: 1 } }], "MISSING")],
+      netlist: [
+        makeNet(
+          "n1",
+          [
+            { kind: "pin", partId: "missing", pinId: "1" },
+            { kind: "hole", hole: { x: 1, y: 1 } },
+          ],
+          "MISSING",
+        ),
+      ],
     });
     const result = tracesFromNetlist(project);
     expect(result.totalNetCount).toBe(0);
@@ -56,8 +83,22 @@ describe("autoLayout.routing", () => {
       width: 3,
       height: 1,
       netlist: [
-        makeNet("n1", [{ kind: "hole", hole: { x: 0, y: 0 } }, { kind: "hole", hole: { x: 2, y: 0 } }], "A"),
-        makeNet("n2", [{ kind: "hole", hole: { x: 0, y: 0 } }, { kind: "hole", hole: { x: 2, y: 0 } }], "B"),
+        makeNet(
+          "n1",
+          [
+            { kind: "hole", hole: { x: 0, y: 0 } },
+            { kind: "hole", hole: { x: 2, y: 0 } },
+          ],
+          "A",
+        ),
+        makeNet(
+          "n2",
+          [
+            { kind: "hole", hole: { x: 0, y: 0 } },
+            { kind: "hole", hole: { x: 2, y: 0 } },
+          ],
+          "B",
+        ),
       ],
     });
     const result = tracesFromNetlist(project);

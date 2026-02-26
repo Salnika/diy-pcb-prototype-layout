@@ -1,4 +1,12 @@
-import { createNewProject, type Hole, type Net, type NetLabel, type Part, type Project, type Trace } from "../model";
+import {
+  createNewProject,
+  type Hole,
+  type Net,
+  type NetLabel,
+  type Part,
+  type Project,
+  type Trace,
+} from "../model";
 
 export function makeInline2Part(
   args: Readonly<{
@@ -82,7 +90,12 @@ export function makeNet(id: string, terminals: Net["terminals"], name?: string):
   };
 }
 
-export function makeLabel(id: string, at: Hole, name: string, offset?: { dx: number; dy: number }): NetLabel {
+export function makeLabel(
+  id: string,
+  at: Hole,
+  name: string,
+  offset?: { dx: number; dy: number },
+): NetLabel {
   return { id, at, name, offset };
 }
 

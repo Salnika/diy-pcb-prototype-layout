@@ -15,9 +15,26 @@ describe("renderProjectSvg", () => {
       width: 6,
       height: 4,
       parts: [part],
-      traces: [{ ...makeTrace("t1", [{ x: 1, y: 1 }, { x: 4, y: 1 }]), color: "#ff00aa" }],
+      traces: [
+        {
+          ...makeTrace("t1", [
+            { x: 1, y: 1 },
+            { x: 4, y: 1 },
+          ]),
+          color: "#ff00aa",
+        },
+      ],
       netLabels: [makeLabel("nl1", { x: 1, y: 1 }, "VCC")],
-      netlist: [makeNet("n1", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "hole", hole: { x: 1, y: 1 } }], "VCC")],
+      netlist: [
+        makeNet(
+          "n1",
+          [
+            { kind: "pin", partId: "p1", pinId: "1" },
+            { kind: "hole", hole: { x: 1, y: 1 } },
+          ],
+          "VCC",
+        ),
+      ],
     });
 
     const { svg, width, height } = renderProjectSvg(project);

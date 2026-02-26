@@ -88,7 +88,7 @@ export function computeNetCost(
     for (const terminal of terminals) {
       cost += Math.abs(terminal.x - mx) + Math.abs(terminal.y - my);
     }
-    span += (xs[xs.length - 1] - xs[0]) + (ys[ys.length - 1] - ys[0]);
+    span += xs[xs.length - 1] - xs[0] + (ys[ys.length - 1] - ys[0]);
 
     if (terminals.length === 2) {
       const dx = Math.abs(terminals[0].x - terminals[1].x);

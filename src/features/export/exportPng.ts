@@ -38,4 +38,3 @@ export async function downloadPng(filename: string, svg: string, width: number, 
   const blob = await svgStringToPngBlob(svg, { width, height, scale: 2 });
   downloadBlob(filename, blob);
 }
-

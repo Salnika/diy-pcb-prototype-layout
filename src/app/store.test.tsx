@@ -2,7 +2,13 @@ import { act, render, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import React from "react";
 import { computeNetIndex, holeKey } from "../model";
-import { AppStoreProvider, makeDefaultPart, rotatePart, useAppDispatch, useAppState } from "./store";
+import {
+  AppStoreProvider,
+  makeDefaultPart,
+  rotatePart,
+  useAppDispatch,
+  useAppState,
+} from "./store";
 
 function setupStore() {
   let latestState: ReturnType<typeof useAppState> | null = null;
@@ -39,8 +45,12 @@ describe("store", () => {
   });
 
   it("enforces hook usage within provider", () => {
-    expect(() => renderHook(() => useAppState())).toThrow("useAppState must be used within AppStoreProvider");
-    expect(() => renderHook(() => useAppDispatch())).toThrow("useAppDispatch must be used within AppStoreProvider");
+    expect(() => renderHook(() => useAppState())).toThrow(
+      "useAppState must be used within AppStoreProvider",
+    );
+    expect(() => renderHook(() => useAppDispatch())).toThrow(
+      "useAppDispatch must be used within AppStoreProvider",
+    );
   });
 
   it("initializes with one active tab and default UI state", () => {
@@ -111,7 +121,10 @@ describe("store", () => {
     });
 
     expect(state().project.traces.length).toBe(1);
-    expect(state().project.traces[0]?.nodes).toEqual([{ x: 1, y: 1 }, { x: 2, y: 1 }]);
+    expect(state().project.traces[0]?.nodes).toEqual([
+      { x: 1, y: 1 },
+      { x: 2, y: 1 },
+    ]);
     expect(state().project.traces[0]?.color).toBe("#ff5500");
     expect(state().ui.viewport).toEqual({ scale: 2, pan: { x: 10, y: 20 } });
   });
@@ -206,11 +219,11 @@ describe("store", () => {
     const r2 = rotatePart(r1);
     const r3 = rotatePart(r2);
     const r4 = rotatePart(r3);
-    expect([r1.placement.rotation, r2.placement.rotation, r3.placement.rotation, r4.placement.rotation]).toEqual([
-      90,
-      180,
-      270,
-      0,
-    ]);
+    expect([
+      r1.placement.rotation,
+      r2.placement.rotation,
+      r3.placement.rotation,
+      r4.placement.rotation,
+    ]).toEqual([90, 180, 270, 0]);
   });
 });

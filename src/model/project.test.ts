@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { createDefaultIds, createNewProject, DEFAULT_BOARD, SCHEMA_VERSION, withUpdatedAt } from "./project";
+import {
+  createDefaultIds,
+  createNewProject,
+  DEFAULT_BOARD,
+  SCHEMA_VERSION,
+  withUpdatedAt,
+} from "./project";
 
 describe("project", () => {
   it("creates a new project with defaults", () => {
@@ -36,8 +42,28 @@ describe("project", () => {
     const project = createNewProject();
     const next = createDefaultIds({
       ...project,
-      parts: [{ id: "", ref: "R1", kind: "resistor", value: "", placement: { origin: { x: 1, y: 1 }, rotation: 0, flip: false }, footprint: { type: "inline2", span: 2 }, properties: {} }],
-      traces: [{ id: "", kind: "wire", layer: "bottom", nodes: [{ x: 1, y: 1 }, { x: 2, y: 1 }] }],
+      parts: [
+        {
+          id: "",
+          ref: "R1",
+          kind: "resistor",
+          value: "",
+          placement: { origin: { x: 1, y: 1 }, rotation: 0, flip: false },
+          footprint: { type: "inline2", span: 2 },
+          properties: {},
+        },
+      ],
+      traces: [
+        {
+          id: "",
+          kind: "wire",
+          layer: "bottom",
+          nodes: [
+            { x: 1, y: 1 },
+            { x: 2, y: 1 },
+          ],
+        },
+      ],
       netLabels: [{ id: "", at: { x: 2, y: 2 }, name: "GND" }],
     });
 

@@ -17,7 +17,12 @@ describe("hole", () => {
   });
 
   it("checks board bounds", () => {
-    const board = { type: "perfboard" as const, width: 3, height: 2, labeling: { rows: "alpha" as const, cols: "numeric" as const } };
+    const board = {
+      type: "perfboard" as const,
+      width: 3,
+      height: 2,
+      labeling: { rows: "alpha" as const, cols: "numeric" as const },
+    };
     expect(isWithinBoard(board, { x: 0, y: 0 })).toBe(true);
     expect(isWithinBoard(board, { x: 2, y: 1 })).toBe(true);
     expect(isWithinBoard(board, { x: -1, y: 0 })).toBe(false);

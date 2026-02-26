@@ -38,7 +38,10 @@ function heuristicToTargets(key: string, targets: readonly Hole[]): number {
   return Number.isFinite(best) ? best : 0;
 }
 
-function reconstructStatePath(stateId: string, prevState: ReadonlyMap<string, string | null>): readonly Hole[] {
+function reconstructStatePath(
+  stateId: string,
+  prevState: ReadonlyMap<string, string | null>,
+): readonly Hole[] {
   const path: Hole[] = [];
   let current: string | null = stateId;
   while (current) {
@@ -231,7 +234,11 @@ function runRoutingIteration(
   return { routed, occupancy, completeCount, overflow, totalLength };
 }
 
-function buildRouteNets(project: Project, pinIndex: ReadonlyMap<string, Hole>, warnings: string[]): readonly RouteNet[] {
+function buildRouteNets(
+  project: Project,
+  pinIndex: ReadonlyMap<string, Hole>,
+  warnings: string[],
+): readonly RouteNet[] {
   const pinHoleSet = new Set<string>();
   for (const hole of pinIndex.values()) pinHoleSet.add(holeKey(hole));
   const fixedHoleSet = new Set(project.layoutConstraints.fixedHoles.map((hole) => holeKey(hole)));
@@ -365,7 +372,8 @@ export function tracesFromNetlist(project: Project): TraceBuildResult {
 
   if (best.completeCount < nets.length) {
     for (const net of best.routed) {
-      if (!net.complete) warnings.push(`Net ${net.name}: routing is impossible with current constraints.`);
+      if (!net.complete)
+        warnings.push(`Net ${net.name}: routing is impossible with current constraints.`);
     }
   }
   if (best.overflow > 0) {

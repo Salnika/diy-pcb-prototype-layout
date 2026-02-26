@@ -1,22 +1,15 @@
 import { useMemo } from "react";
 import { computeNetIndex, getPartPins, holeKey, holeLabel, netColor, type Hole } from "../../model";
 import { useAppDispatch, useAppState } from "../../app/store";
-import {
-  BoardBackdropLayer,
-  BoardHolesLayer,
-  ConnectDraftMarker,
-  NetLabelLayer,
-  PartLayer,
-  TraceDraftLayer,
-  TraceLayer,
-} from "./components/BoardSvgLayers";
+import { useDialogGateway } from "../../app/effects/dialogGateway";
 import { createBoardHoles, createViewSize } from "./boardGeometry";
 import { useBoardInteractions } from "./hooks/useBoardInteractions";
-import * as styles from "./BoardView.css";
+import { BoardViewUi } from "./ui/BoardView";
 
 export function BoardView() {
   const state = useAppState();
   const dispatch = useAppDispatch();
+  const dialogs = useDialogGateway();
 
   const { board } = state.project;
   const { viewport, tool, selection, traceDraft } = state.ui;
@@ -28,7 +21,9 @@ export function BoardView() {
   );
   const fixedHoles = state.project.layoutConstraints.fixedHoles;
 
-  const hoverNetId = state.ui.hoverHole ? netIndex.holeToNetId.get(holeKey(state.ui.hoverHole)) ?? null : null;
+  const hoverNetId = state.ui.hoverHole
+    ? (netIndex.holeToNetId.get(holeKey(state.ui.hoverHole)) ?? null)
+    : null;
   const selectedNetId = useMemo(() => {
     if (selection.type === "trace") {
       const trace = state.project.traces.find((entry) => entry.id === selection.id);
@@ -45,13 +40,22 @@ export function BoardView() {
       if (pin) return netIndex.holeToNetId.get(holeKey(pin.hole)) ?? null;
     }
     return null;
-  }, [netIndex.holeToNetId, selection, state.project.netLabels, state.project.parts, state.project.traces]);
+  }, [
+    netIndex.holeToNetId,
+    selection,
+    state.project.netLabels,
+    state.project.parts,
+    state.project.traces,
+  ]);
 
   const activeNetId = hoverNetId ?? selectedNetId;
   const activeNetName = activeNetId ? netIndex.netIdToName.get(activeNetId) : undefined;
   const activeNetColor = activeNetId ? netColor(activeNetId, activeNetName) : null;
 
-  const selectedNet = selection.type === "net" ? state.project.netlist.find((net) => net.id === selection.id) ?? null : null;
+  const selectedNet =
+    selection.type === "net"
+      ? (state.project.netlist.find((net) => net.id === selection.id) ?? null)
+      : null;
   const selectedNetColor = selectedNet ? netColor(selectedNet.id, selectedNet.name) : null;
   const selectedNetHoles = useMemo(() => {
     if (!selectedNet) return [];
@@ -85,6 +89,7 @@ export function BoardView() {
     fixedPartIds,
     netIndex,
     dispatch,
+    dialog: dialogs,
   });
 
   const hoverText = state.ui.hoverHole ? holeLabel(state.ui.hoverHole, board.labeling) : "-";
@@ -96,95 +101,49 @@ export function BoardView() {
       : null;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarTitle}>
-          <span className={styles.title}>Board</span>
-          <span className={styles.meta}>
-            {board.height}×{board.width} ({hoverText})
-          </span>
-        </div>
-        <span className={styles.meta}>
-          {traceDraft
-            ? `Trace: ${traceDraft.nodes.length} nodes (Enter=finish, Esc=cancel, Del=undo)`
-              : connectHint
-                ? connectHint
-                : activeNetId
-                ? `Net: ${activeNetName ?? "-"}`
-                : " "}
-          {"  "}·{"  "}Zoom: {Math.round(viewport.scale * 100)}%
-        </span>
-      </div>
-
-      <div className={styles.viewport}>
-        <svg
-          ref={interactions.svgRef}
-          className={styles.svg}
-          viewBox={`0 0 ${viewSize.w} ${viewSize.h}`}
-          onWheel={interactions.onWheel}
-          onPointerDown={interactions.onPointerDown}
-          onPointerMove={interactions.onPointerMove}
-          onPointerUp={interactions.onPointerUp}
-          onPointerCancel={interactions.onPointerUp}
-          onDoubleClick={interactions.onDoubleClick}
-          onContextMenu={(event) => event.preventDefault()}
-        >
-          <g transform={`translate(${viewport.pan.x} ${viewport.pan.y}) scale(${viewport.scale})`}>
-            <BoardBackdropLayer
-              board={board}
-              activeNetId={activeNetId}
-              activeNetColor={activeNetColor}
-              selectedNetHoles={selectedNetHoles}
-              selectedNetColor={selectedNetColor}
-              fixedHoles={fixedHoles}
-              netIndex={netIndex}
-            />
-
-            <TraceLayer
-              traces={interactions.tracesToRender}
-              selection={selection}
-              tool={tool}
-              activeNetId={activeNetId}
-              netIndex={netIndex}
-              onDeleteTrace={(id) => dispatch({ type: "DELETE_TRACE", id })}
-              onSelectTrace={(id) => dispatch({ type: "SELECT", selection: { type: "trace", id } })}
-              onStartTraceDrag={interactions.startTraceDrag}
-              onStartTraceSegmentDrag={interactions.startTraceSegmentDrag}
-              onStartTraceNodeDrag={interactions.startTraceNodeDrag}
-            />
-
-            <TraceDraftLayer traceDraft={traceDraft} hoverHole={state.ui.hoverHole} tool={tool} />
-
-            <PartLayer
-              parts={interactions.partsToRender}
-              ghostPart={interactions.ghostPart}
-              selection={selection}
-              tool={tool}
-              board={board}
-              fixedPartIds={fixedPartIds}
-              onDeletePart={(id) => dispatch({ type: "DELETE_PART", id })}
-              onSelectPart={(id) => dispatch({ type: "SELECT", selection: { type: "part", id } })}
-              onStartPartDrag={interactions.startPartDrag}
-              onStartInline2Stretch={interactions.startInline2Stretch}
-            />
-
-            <NetLabelLayer
-              labels={interactions.labelsToRender}
-              labelDraftId={interactions.labelDraftId}
-              selection={selection}
-              tool={tool}
-              netIndex={netIndex}
-              onDeleteNetLabel={(id) => dispatch({ type: "DELETE_NETLABEL", id })}
-              onSelectNetLabel={(id) => dispatch({ type: "SELECT", selection: { type: "netLabel", id } })}
-              onStartLabelDrag={interactions.startLabelDrag}
-            />
-
-            <ConnectDraftMarker hole={interactions.connectDraftHole} />
-
-            <BoardHolesLayer holes={holes} hoverHole={state.ui.hoverHole} selection={selection} />
-          </g>
-        </svg>
-      </div>
-    </div>
+    <BoardViewUi
+      board={board}
+      viewport={viewport}
+      viewSize={viewSize}
+      holes={holes}
+      fixedHoles={fixedHoles}
+      fixedPartIds={fixedPartIds}
+      netIndex={netIndex}
+      selection={selection}
+      tool={tool}
+      hoverHole={state.ui.hoverHole}
+      traceDraft={traceDraft}
+      hoverText={hoverText}
+      connectHint={connectHint}
+      activeNetId={activeNetId}
+      activeNetName={activeNetName}
+      activeNetColor={activeNetColor}
+      selectedNetHoles={selectedNetHoles}
+      selectedNetColor={selectedNetColor}
+      tracesToRender={interactions.tracesToRender}
+      partsToRender={interactions.partsToRender}
+      labelsToRender={interactions.labelsToRender}
+      ghostPart={interactions.ghostPart}
+      labelDraftId={interactions.labelDraftId}
+      connectDraftHole={interactions.connectDraftHole}
+      svgRef={interactions.svgRef}
+      onWheel={interactions.onWheel}
+      onPointerDown={interactions.onPointerDown}
+      onPointerMove={interactions.onPointerMove}
+      onPointerUp={interactions.onPointerUp}
+      onDoubleClick={interactions.onDoubleClick}
+      onDeleteTrace={(id) => dispatch({ type: "DELETE_TRACE", id })}
+      onSelectTrace={(id) => dispatch({ type: "SELECT", selection: { type: "trace", id } })}
+      onStartTraceDrag={interactions.startTraceDrag}
+      onStartTraceSegmentDrag={interactions.startTraceSegmentDrag}
+      onStartTraceNodeDrag={interactions.startTraceNodeDrag}
+      onDeletePart={(id) => dispatch({ type: "DELETE_PART", id })}
+      onSelectPart={(id) => dispatch({ type: "SELECT", selection: { type: "part", id } })}
+      onStartPartDrag={interactions.startPartDrag}
+      onStartInline2Stretch={interactions.startInline2Stretch}
+      onDeleteNetLabel={(id) => dispatch({ type: "DELETE_NETLABEL", id })}
+      onSelectNetLabel={(id) => dispatch({ type: "SELECT", selection: { type: "netLabel", id } })}
+      onStartLabelDrag={interactions.startLabelDrag}
+    />
   );
 }

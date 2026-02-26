@@ -4,7 +4,12 @@ import { DEFAULT_ITERATIONS, DEFAULT_RESTARTS } from "./autoLayout.constants";
 import { buildPinIndex, createRng, pinCenter } from "./autoLayout.common";
 import { placementsForPart, isPlacementValid } from "./autoLayout.placement";
 import { buildPartEdges, buildPinNetMap, computeCost } from "./autoLayout.scoring";
-import type { AutoLayoutOptions, AutoLayoutResult, Candidate, NetTerminalPos } from "./autoLayout.types";
+import type {
+  AutoLayoutOptions,
+  AutoLayoutResult,
+  Candidate,
+  NetTerminalPos,
+} from "./autoLayout.types";
 import type { Part, Project } from "./types";
 
 function hashStringToSeed(input: string): number {
@@ -56,7 +61,9 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
 
   const fixedPartIds = new Set(project.layoutConstraints.fixedPartIds);
   const fixedHoleSet = new Set(project.layoutConstraints.fixedHoles.map((hole) => holeKey(hole)));
-  const baselineRotations = new Map(project.parts.map((part) => [part.id, part.placement.rotation]));
+  const baselineRotations = new Map(
+    project.parts.map((part) => [part.id, part.placement.rotation]),
+  );
   const baselineOrigins = new Map(project.parts.map((part) => [part.id, part.placement.origin]));
   const edges = buildPartEdges(project);
   const pinNetMap = buildPinNetMap(project);
@@ -108,7 +115,10 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
 
   for (const part of movableParts) {
     const netIds = partToNetIds.get(part.id) ?? [];
-    const points = netIds.map((id) => netCentroids.get(id)).filter(Boolean) as { x: number; y: number }[];
+    const points = netIds.map((id) => netCentroids.get(id)).filter(Boolean) as {
+      x: number;
+      y: number;
+    }[];
     if (points.length === 0) {
       const pins = getPartPins(part).map((pin) => pin.hole);
       partTargets.set(part.id, pinCenter(pins));
@@ -145,7 +155,8 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
       let best = candidates[0];
       let bestDist = Infinity;
       for (const candidate of candidates) {
-        const dist = Math.abs(candidate.center.x - target.x) + Math.abs(candidate.center.y - target.y);
+        const dist =
+          Math.abs(candidate.center.x - target.x) + Math.abs(candidate.center.y - target.y);
         if (dist < bestDist) {
           bestDist = dist;
           best = candidate;
@@ -247,8 +258,10 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
         if (idxA === idxB) idxB = (idxB + 1) % movableParts.length;
         const partA = movableParts[idxA];
         const partB = movableParts[idxB];
-        const placementA = currentParts.find((part) => part.id === partA.id)?.placement ?? partA.placement;
-        const placementB = currentParts.find((part) => part.id === partB.id)?.placement ?? partB.placement;
+        const placementA =
+          currentParts.find((part) => part.id === partA.id)?.placement ?? partA.placement;
+        const placementB =
+          currentParts.find((part) => part.id === partB.id)?.placement ?? partB.placement;
         if (
           isPlacementValid(project.board, fixedHoleSet, partA, placementB) &&
           isPlacementValid(project.board, fixedHoleSet, partB, placementA)
@@ -265,7 +278,7 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
         const target = movableParts[Math.floor(rng() * movableParts.length)];
         const prefer = rng() < 0.75;
         const candidates = prefer
-          ? preferredCandidatesById.get(target.id) ?? candidatesById.get(target.id)
+          ? (preferredCandidatesById.get(target.id) ?? candidatesById.get(target.id))
           : candidatesById.get(target.id);
         if (!candidates || candidates.length === 0) continue;
         const candidate = candidates[Math.floor(rng() * candidates.length)];
@@ -284,7 +297,8 @@ export function autoLayout(project: Project, options: AutoLayoutOptions = {}): A
         edges,
         baselineOrigins,
       );
-      const accept = cost <= currentCost || Math.exp((currentCost - cost) / Math.max(0.05, temp)) > rng();
+      const accept =
+        cost <= currentCost || Math.exp((currentCost - cost) / Math.max(0.05, temp)) > rng();
       if (accept) {
         currentParts = nextParts;
         currentCost = cost;

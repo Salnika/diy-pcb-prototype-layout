@@ -8,10 +8,12 @@ and this project currently follows semantic versioning principles for release no
 ## [Unreleased]
 
 ### Added
+
 - Expanded README with features, setup, scripts, quality gate, and deployment notes.
 - Added this changelog file for release tracking.
 
 ### Changed
+
 - Renamed project branding and package identity to `Perfboard Designer`.
 - Updated JSON export extension from `.diypcb.json` to `.perfboard.json`.
 - Migrated app storage keys to `perfboard-designer.*` with fallback support for legacy keys.

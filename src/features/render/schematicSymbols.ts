@@ -2,20 +2,35 @@ import type { Part } from "../../model";
 
 export type Point = Readonly<{ x: number; y: number }>;
 
-export type TextAnchor = "start" | "middle" | "end";
+type TextAnchor = "start" | "middle" | "end";
 
-export type SymbolPrimitiveRole = "body" | "pin1";
+type SymbolPrimitiveRole = "body" | "pin1";
 
-export type SymbolPrimitive =
-  | Readonly<{ type: "line"; role: SymbolPrimitiveRole; x1: number; y1: number; x2: number; y2: number }>
-  | Readonly<{ type: "rect"; role: SymbolPrimitiveRole; x: number; y: number; width: number; height: number; rx?: number }>
+type SymbolPrimitive =
+  | Readonly<{
+      type: "line";
+      role: SymbolPrimitiveRole;
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+    }>
+  | Readonly<{
+      type: "rect";
+      role: SymbolPrimitiveRole;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      rx?: number;
+    }>
   | Readonly<{ type: "circle"; role: SymbolPrimitiveRole; cx: number; cy: number; r: number }>
   | Readonly<{ type: "polyline"; role: SymbolPrimitiveRole; points: string }>
   | Readonly<{ type: "polygon"; role: SymbolPrimitiveRole; points: string }>;
 
-export type SymbolTextRole = "pinLabel";
+type SymbolTextRole = "pinLabel";
 
-export type SymbolText = Readonly<{
+type SymbolText = Readonly<{
   type: "text";
   role: SymbolTextRole;
   x: number;
@@ -30,7 +45,7 @@ export type PinGeometry = Readonly<{
   center: Point;
 }>;
 
-export type PartSymbol = Readonly<{
+type PartSymbol = Readonly<{
   primitives: readonly SymbolPrimitive[];
   texts: readonly SymbolText[];
   refAnchor?: Point;
@@ -83,8 +98,7 @@ function anchorFromDirection(v: Point): TextAnchor {
 function inline2PinLabels(pins: readonly PinGeometry[], mid: Point): readonly SymbolText[] {
   const labels = pins.map((p) => p.pinLabel);
   if (labels.length < 2) return [];
-  const hasCustom =
-    (labels[0] && labels[0] !== "1") || (labels[1] && labels[1] !== "2");
+  const hasCustom = (labels[0] && labels[0] !== "1") || (labels[1] && labels[1] !== "2");
   if (!hasCustom) return [];
 
   return pins.map((pin) => {
@@ -247,11 +261,7 @@ function switch3PinLabels(
   ];
 }
 
-function symbolForSwitch2Pin(
-  p1: Point,
-  p2: Point,
-  labelPins: readonly PinGeometry[],
-): PartSymbol {
+function symbolForSwitch2Pin(p1: Point, p2: Point, labelPins: readonly PinGeometry[]): PartSymbol {
   const v = sub(p2, p1);
   const l = len(v);
   if (l < 1e-6) {
@@ -278,8 +288,22 @@ function symbolForSwitch2Pin(
     primitives: [
       { type: "line", role: "body", x1: p1.x, y1: p1.y, x2: contactA.x, y2: contactA.y },
       { type: "line", role: "body", x1: contactB.x, y1: contactB.y, x2: p2.x, y2: p2.y },
-      { type: "line", role: "body", x1: contactA.x, y1: contactA.y, x2: leverEnd.x, y2: leverEnd.y },
-      { type: "line", role: "body", x1: contactBarA.x, y1: contactBarA.y, x2: contactBarB.x, y2: contactBarB.y },
+      {
+        type: "line",
+        role: "body",
+        x1: contactA.x,
+        y1: contactA.y,
+        x2: leverEnd.x,
+        y2: leverEnd.y,
+      },
+      {
+        type: "line",
+        role: "body",
+        x1: contactBarA.x,
+        y1: contactBarA.y,
+        x2: contactBarB.x,
+        y2: contactBarB.y,
+      },
       { type: "circle", role: "body", cx: contactA.x, cy: contactA.y, r: 1.8 },
     ],
     texts: inline2PinLabels(labelPins, mid),
@@ -318,9 +342,23 @@ function symbolForSwitch3Pin(pin1: PinGeometry, pin2: PinGeometry, pin3: PinGeom
   return {
     primitives: [
       { type: "line", role: "body", x1: outA.x, y1: outA.y, x2: freeStubEnd.x, y2: freeStubEnd.y },
-      { type: "line", role: "body", x1: outB.x, y1: outB.y, x2: fixedContact.x, y2: fixedContact.y },
+      {
+        type: "line",
+        role: "body",
+        x1: outB.x,
+        y1: outB.y,
+        x2: fixedContact.x,
+        y2: fixedContact.y,
+      },
       { type: "line", role: "body", x1: common.x, y1: common.y, x2: leverEnd.x, y2: leverEnd.y },
-      { type: "line", role: "body", x1: contactBarA.x, y1: contactBarA.y, x2: contactBarB.x, y2: contactBarB.y },
+      {
+        type: "line",
+        role: "body",
+        x1: contactBarA.x,
+        y1: contactBarA.y,
+        x2: contactBarB.x,
+        y2: contactBarB.y,
+      },
       { type: "circle", role: "body", cx: common.x, cy: common.y, r: 1.6 },
       { type: "circle", role: "body", cx: outA.x, cy: outA.y, r: 1.2 },
       { type: "circle", role: "body", cx: outB.x, cy: outB.y, r: 1.2 },
@@ -361,7 +399,14 @@ function symbolForPotentiometer(pins: readonly PinGeometry[]): PartSymbol {
   return {
     primitives: [
       ...base.primitives,
-      { type: "line", role: "body", x1: p2.center.x, y1: p2.center.y, x2: arrowTip.x, y2: arrowTip.y },
+      {
+        type: "line",
+        role: "body",
+        x1: p2.center.x,
+        y1: p2.center.y,
+        x2: arrowTip.x,
+        y2: arrowTip.y,
+      },
       { type: "polyline", role: "body", points: pointsAttr([headLeft, arrowTip, headRight]) },
     ],
     texts: [
@@ -403,7 +448,15 @@ function symbolForJack(pins: readonly PinGeometry[]): PartSymbol {
 
   return {
     primitives: [
-      { type: "rect", role: "body", x: bodyX, y: bodyY, width: bodyWidth, height: bodyHeight, rx: 3 },
+      {
+        type: "rect",
+        role: "body",
+        x: bodyX,
+        y: bodyY,
+        width: bodyWidth,
+        height: bodyHeight,
+        rx: 3,
+      },
       ...leads,
     ],
     texts: pins.map((pin) => ({
@@ -418,7 +471,10 @@ function symbolForJack(pins: readonly PinGeometry[]): PartSymbol {
   };
 }
 
-function symbolForPower(kind: "power_pos" | "power_neg" | "power_gnd", pins: readonly PinGeometry[]): PartSymbol {
+function symbolForPower(
+  kind: "power_pos" | "power_neg" | "power_gnd",
+  pins: readonly PinGeometry[],
+): PartSymbol {
   const pin = pins[0]?.center;
   if (!pin) return { primitives: [], texts: [] };
   const stemTop = { x: pin.x, y: pin.y - 8 };
@@ -471,7 +527,14 @@ function symbolForTransistor(pins: readonly PinGeometry[]): PartSymbol {
   for (const pin of [p1, p2, p3]) {
     const dir = normalize(sub(pin.center, bodyCenter));
     const edge = add(bodyCenter, mul(dir, radius));
-    leadPrimitives.push({ type: "line", role: "body", x1: pin.center.x, y1: pin.center.y, x2: edge.x, y2: edge.y });
+    leadPrimitives.push({
+      type: "line",
+      role: "body",
+      x1: pin.center.x,
+      y1: pin.center.y,
+      x2: edge.x,
+      y2: edge.y,
+    });
 
     const labelPos = add(pin.center, mul(dir, 7));
     pinTexts.push({
@@ -522,15 +585,43 @@ function symbolForDip(pins: readonly PinGeometry[]): PartSymbol {
     const min = Math.min(dLeft, dRight, dTop, dBottom);
 
     if (min === dLeft) {
-      return { type: "text", role: "pinLabel", x: c.x - 6, y: c.y + 3, text: pin.pinLabel, textAnchor: "end" };
+      return {
+        type: "text",
+        role: "pinLabel",
+        x: c.x - 6,
+        y: c.y + 3,
+        text: pin.pinLabel,
+        textAnchor: "end",
+      };
     }
     if (min === dRight) {
-      return { type: "text", role: "pinLabel", x: c.x + 6, y: c.y + 3, text: pin.pinLabel, textAnchor: "start" };
+      return {
+        type: "text",
+        role: "pinLabel",
+        x: c.x + 6,
+        y: c.y + 3,
+        text: pin.pinLabel,
+        textAnchor: "start",
+      };
     }
     if (min === dTop) {
-      return { type: "text", role: "pinLabel", x: c.x, y: c.y - 6, text: pin.pinLabel, textAnchor: "middle" };
+      return {
+        type: "text",
+        role: "pinLabel",
+        x: c.x,
+        y: c.y - 6,
+        text: pin.pinLabel,
+        textAnchor: "middle",
+      };
     }
-    return { type: "text", role: "pinLabel", x: c.x, y: c.y + 12, text: pin.pinLabel, textAnchor: "middle" };
+    return {
+      type: "text",
+      role: "pinLabel",
+      x: c.x,
+      y: c.y + 12,
+      text: pin.pinLabel,
+      textAnchor: "middle",
+    };
   });
 
   const pin1 = pickPin(pins, "1");
@@ -548,10 +639,7 @@ function symbolForDip(pins: readonly PinGeometry[]): PartSymbol {
   };
 
   return {
-    primitives: [
-      { type: "rect", role: "body", ...rect },
-      ...pin1Marker,
-    ],
+    primitives: [{ type: "rect", role: "body", ...rect }, ...pin1Marker],
     texts,
     refAnchor: bodyCenter,
   };

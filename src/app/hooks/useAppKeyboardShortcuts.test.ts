@@ -122,9 +122,19 @@ describe("useAppKeyboardShortcuts", () => {
     expect(ev.defaultPrevented).toBe(true);
     expect(dispatch).toHaveBeenCalledWith({ type: "POP_TRACE_NODE" });
 
-    rerender({ tool: { type: "select" }, selection: { type: "part", id: "p1" }, traceDraft: null, parts: [] });
+    rerender({
+      tool: { type: "select" },
+      selection: { type: "part", id: "p1" },
+      traceDraft: null,
+      parts: [],
+    });
     dispatchKey("Delete");
-    rerender({ tool: { type: "select" }, selection: { type: "trace", id: "t1" }, traceDraft: null, parts: [] });
+    rerender({
+      tool: { type: "select" },
+      selection: { type: "trace", id: "t1" },
+      traceDraft: null,
+      parts: [],
+    });
     dispatchKey("Delete");
     rerender({
       tool: { type: "select" },
@@ -133,7 +143,12 @@ describe("useAppKeyboardShortcuts", () => {
       parts: [],
     });
     dispatchKey("Backspace");
-    rerender({ tool: { type: "select" }, selection: { type: "net", id: "n1" }, traceDraft: null, parts: [] });
+    rerender({
+      tool: { type: "select" },
+      selection: { type: "net", id: "n1" },
+      traceDraft: null,
+      parts: [],
+    });
     dispatchKey("Delete");
 
     expect(dispatch).toHaveBeenCalledWith({ type: "DELETE_PART", id: "p1" });
@@ -154,7 +169,13 @@ describe("useAppKeyboardShortcuts", () => {
           traceDraft: null,
           parts: props.parts,
         }),
-      { initialProps: { tool: { type: "select" }, selection: { type: "part", id: "p1" }, parts: [part] } },
+      {
+        initialProps: {
+          tool: { type: "select" },
+          selection: { type: "part", id: "p1" },
+          parts: [part],
+        },
+      },
     );
     dispatchKey("r");
     expect(dispatch).toHaveBeenCalledWith(
@@ -164,7 +185,11 @@ describe("useAppKeyboardShortcuts", () => {
       }),
     );
 
-    rerender({ tool: { type: "select" }, selection: { type: "part", id: "missing" }, parts: [part] });
+    rerender({
+      tool: { type: "select" },
+      selection: { type: "part", id: "missing" },
+      parts: [part],
+    });
     dispatchKey("r");
     expect(dispatch).toHaveBeenCalledTimes(1);
   });

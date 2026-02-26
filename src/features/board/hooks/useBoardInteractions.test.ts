@@ -12,8 +12,10 @@ vi.mock("../boardGeometry", async () => {
   const actual = await vi.importActual<typeof import("../boardGeometry")>("../boardGeometry");
   return {
     ...actual,
-    svgPointFromEvent: (...args: Parameters<typeof actual.svgPointFromEvent>) => mocks.svgPointFromEvent(...args),
-    holeFromWorld: (...args: Parameters<typeof actual.holeFromWorld>) => mocks.holeFromWorld(...args),
+    svgPointFromEvent: (...args: Parameters<typeof actual.svgPointFromEvent>) =>
+      mocks.svgPointFromEvent(...args),
+    holeFromWorld: (...args: Parameters<typeof actual.holeFromWorld>) =>
+      mocks.holeFromWorld(...args),
   };
 });
 
@@ -95,7 +97,9 @@ describe("useBoardInteractions", () => {
     const svg = fakeSvg();
     result.current.svgRef.current = svg;
 
-    mocks.svgPointFromEvent.mockReturnValueOnce({ x: 10, y: 10 }).mockReturnValueOnce({ x: 30, y: 45 });
+    mocks.svgPointFromEvent
+      .mockReturnValueOnce({ x: 10, y: 10 })
+      .mockReturnValueOnce({ x: 30, y: 45 });
 
     act(() => {
       result.current.onPointerDown({ button: 1, pointerId: 11 } as any);
@@ -131,16 +135,26 @@ describe("useBoardInteractions", () => {
       }),
     );
     expect(params.dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "SELECT", selection: expect.objectContaining({ type: "part" }) }),
+      expect.objectContaining({
+        type: "SELECT",
+        selection: expect.objectContaining({ type: "part" }),
+      }),
     );
   });
 
   it("handles connect mode state machine", () => {
     const dispatch = vi.fn();
-    const initial: BoardInteractionsParams = { ...baseParams(), tool: { type: "connect" }, dispatch };
-    const { result, rerender } = renderHook((props: BoardInteractionsParams) => useBoardInteractions(props), {
-      initialProps: initial,
-    });
+    const initial: BoardInteractionsParams = {
+      ...baseParams(),
+      tool: { type: "connect" },
+      dispatch,
+    };
+    const { result, rerender } = renderHook(
+      (props: BoardInteractionsParams) => useBoardInteractions(props),
+      {
+        initialProps: initial,
+      },
+    );
     result.current.svgRef.current = fakeSvg();
 
     mocks.holeFromWorld.mockReturnValueOnce({ x: 1, y: 1 });
@@ -155,8 +169,16 @@ describe("useBoardInteractions", () => {
       result.current.onPointerDown({ button: 0, pointerId: 3 } as any);
     });
 
-    expect(dispatch).toHaveBeenCalledWith({ type: "ADD_NET_TERMINAL", id: "n1", terminal: { kind: "hole", hole: { x: 1, y: 1 } } });
-    expect(dispatch).toHaveBeenCalledWith({ type: "ADD_NET_TERMINAL", id: "n1", terminal: { kind: "hole", hole: { x: 2, y: 1 } } });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "ADD_NET_TERMINAL",
+      id: "n1",
+      terminal: { kind: "hole", hole: { x: 1, y: 1 } },
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "ADD_NET_TERMINAL",
+      id: "n1",
+      terminal: { kind: "hole", hole: { x: 2, y: 1 } },
+    });
   });
 
   it("handles wire draft completion and double click", () => {
@@ -210,14 +232,20 @@ describe("useBoardInteractions", () => {
 
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: "ADD_NETLABEL" }));
     expect(dispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "SELECT", selection: expect.objectContaining({ type: "netLabel" }) }),
+      expect.objectContaining({
+        type: "SELECT",
+        selection: expect.objectContaining({ type: "netLabel" }),
+      }),
     );
   });
 
   it("drags part and updates preview traces", () => {
     const dispatch = vi.fn();
     const part = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 }, span: 2 });
-    const trace = makeTrace("t1", [{ x: 1, y: 1 }, { x: 3, y: 1 }]);
+    const trace = makeTrace("t1", [
+      { x: 1, y: 1 },
+      { x: 3, y: 1 },
+    ]);
     const params = {
       ...baseParams(),
       dispatch,
@@ -248,7 +276,10 @@ describe("useBoardInteractions", () => {
 
   it("drags a trace segment from the middle and creates a natural dogleg", () => {
     const dispatch = vi.fn();
-    const trace = makeTrace("t1", [{ x: 1, y: 1 }, { x: 4, y: 1 }]);
+    const trace = makeTrace("t1", [
+      { x: 1, y: 1 },
+      { x: 4, y: 1 },
+    ]);
     const params = {
       ...baseParams(),
       dispatch,
@@ -281,13 +312,22 @@ describe("useBoardInteractions", () => {
     expect(dispatch).toHaveBeenCalledWith({
       type: "UPDATE_TRACE",
       id: "t1",
-      nodes: [{ x: 1, y: 1 }, { x: 1, y: 3 }, { x: 4, y: 3 }, { x: 4, y: 1 }],
+      nodes: [
+        { x: 1, y: 1 },
+        { x: 1, y: 3 },
+        { x: 4, y: 3 },
+        { x: 4, y: 1 },
+      ],
     });
   });
 
   it("drags an internal trace node (angle/intersection point)", () => {
     const dispatch = vi.fn();
-    const trace = makeTrace("t2", [{ x: 1, y: 1 }, { x: 1, y: 3 }, { x: 4, y: 3 }]);
+    const trace = makeTrace("t2", [
+      { x: 1, y: 1 },
+      { x: 1, y: 3 },
+      { x: 4, y: 3 },
+    ]);
     const params = {
       ...baseParams(),
       dispatch,
@@ -307,7 +347,11 @@ describe("useBoardInteractions", () => {
     act(() => {
       result.current.onPointerMove({ pointerId: 22 } as any);
     });
-    expect(result.current.tracesToRender[0]?.nodes).toEqual([{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 4, y: 3 }]);
+    expect(result.current.tracesToRender[0]?.nodes).toEqual([
+      { x: 1, y: 1 },
+      { x: 2, y: 2 },
+      { x: 4, y: 3 },
+    ]);
 
     act(() => {
       result.current.onPointerUp({ pointerId: 22 } as any);
@@ -315,7 +359,11 @@ describe("useBoardInteractions", () => {
     expect(dispatch).toHaveBeenCalledWith({
       type: "UPDATE_TRACE",
       id: "t2",
-      nodes: [{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 4, y: 3 }],
+      nodes: [
+        { x: 1, y: 1 },
+        { x: 2, y: 2 },
+        { x: 4, y: 3 },
+      ],
     });
   });
 

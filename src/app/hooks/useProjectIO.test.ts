@@ -75,10 +75,18 @@ describe("useProjectIO", () => {
 
     result.current.exportSvg();
     expect(renderProjectSvg).toHaveBeenCalledWith(project);
-    expect(downloadText).toHaveBeenCalledWith("My-Project.svg", "<svg/>", "image/svg+xml;charset=utf-8");
+    expect(downloadText).toHaveBeenCalledWith(
+      "My-Project.svg",
+      "<svg/>",
+      "image/svg+xml;charset=utf-8",
+    );
 
     result.current.exportBomCsv();
-    expect(downloadText).toHaveBeenCalledWith("My-Project.bom.csv", "Refs,Qty,Value,Type\n", "text/csv;charset=utf-8");
+    expect(downloadText).toHaveBeenCalledWith(
+      "My-Project.bom.csv",
+      "Refs,Qty,Value,Type\n",
+      "text/csv;charset=utf-8",
+    );
   });
 
   it("uses project fallback filename when meta.name is absent", async () => {
@@ -96,8 +104,16 @@ describe("useProjectIO", () => {
       expect.any(String),
       "application/json;charset=utf-8",
     );
-    expect(downloadText).toHaveBeenCalledWith("project.svg", "<svg/>", "image/svg+xml;charset=utf-8");
-    expect(downloadText).toHaveBeenCalledWith("project.bom.csv", "Refs,Qty,Value,Type\n", "text/csv;charset=utf-8");
+    expect(downloadText).toHaveBeenCalledWith(
+      "project.svg",
+      "<svg/>",
+      "image/svg+xml;charset=utf-8",
+    );
+    expect(downloadText).toHaveBeenCalledWith(
+      "project.bom.csv",
+      "Refs,Qty,Value,Type\n",
+      "text/csv;charset=utf-8",
+    );
     expect(downloadPng).toHaveBeenCalledWith("project.png", "<svg/>", 123, 45);
   });
 
@@ -105,7 +121,8 @@ describe("useProjectIO", () => {
     const dispatch = vi.fn();
     const project = createNewProject("PNG");
     const { result, rerender } = renderHook(
-      (props: { project: ReturnType<typeof createNewProject> }) => useProjectIO({ project: props.project, dispatch }),
+      (props: { project: ReturnType<typeof createNewProject> }) =>
+        useProjectIO({ project: props.project, dispatch }),
       { initialProps: { project } },
     );
 

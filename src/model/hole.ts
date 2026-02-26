@@ -21,4 +21,3 @@ export function parseHoleKey(key: string): Hole | null {
 export function isWithinBoard(board: Board, hole: Hole): boolean {
   return hole.x >= 0 && hole.y >= 0 && hole.x < board.width && hole.y < board.height;
 }
-

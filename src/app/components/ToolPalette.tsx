@@ -19,7 +19,9 @@ export function ToolPalette({ tool, onSetTool }: ToolPaletteProps) {
             <button
               key={entry.title}
               type="button"
-              className={isToolActive(tool, entry.tool) ? styles.toolButtonActive : styles.toolButton}
+              className={
+                isToolActive(tool, entry.tool) ? styles.toolButtonActive : styles.toolButton
+              }
               onClick={() => onSetTool(entry.tool)}
               aria-label={entry.label}
               title={entry.title}
@@ -38,7 +40,9 @@ export function ToolPalette({ tool, onSetTool }: ToolPaletteProps) {
               <button
                 key={entry.kind}
                 type="button"
-                className={isToolActive(tool, partTool) ? styles.toolButtonActive : styles.toolButton}
+                className={
+                  isToolActive(tool, partTool) ? styles.toolButtonActive : styles.toolButton
+                }
                 onClick={() => onSetTool(partTool)}
                 aria-label={entry.label}
                 title={entry.title}

@@ -28,7 +28,12 @@ describe("autoLayout.common", () => {
 
   it("computes pin center", () => {
     expect(pinCenter([])).toEqual({ x: 0, y: 0 });
-    expect(pinCenter([{ x: 0, y: 0 }, { x: 2, y: 2 }])).toEqual({ x: 1, y: 1 });
+    expect(
+      pinCenter([
+        { x: 0, y: 0 },
+        { x: 2, y: 2 },
+      ]),
+    ).toEqual({ x: 1, y: 1 });
   });
 
   it("builds pin index", () => {
@@ -39,7 +44,13 @@ describe("autoLayout.common", () => {
   });
 
   it("keeps unique holes and parses keys", () => {
-    expect(uniqueHoles([{ x: 1, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 2 }])).toEqual([
+    expect(
+      uniqueHoles([
+        { x: 1, y: 1 },
+        { x: 1, y: 1 },
+        { x: 2, y: 2 },
+      ]),
+    ).toEqual([
       { x: 1, y: 1 },
       { x: 2, y: 2 },
     ]);
@@ -60,7 +71,15 @@ describe("autoLayout.common", () => {
       { x: 2, y: 0 },
       { x: 2, y: 2 },
     ]);
-    expect(compressPath([{ x: 0, y: 0 }, { x: 1, y: 0 }])).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
+    expect(
+      compressPath([
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ]),
+    ).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+    ]);
     expect(traceLength(path)).toBe(4);
     expect(traceLength([{ x: 0, y: 0 }])).toBe(0);
   });

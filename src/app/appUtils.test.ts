@@ -22,15 +22,28 @@ describe("appUtils", () => {
   it("checks active tool state", () => {
     expect(isToolActive({ type: "select" }, { type: "select" })).toBe(true);
     expect(isToolActive({ type: "wire" }, { type: "jumper" })).toBe(false);
-    expect(isToolActive({ type: "placePart", kind: "resistor" }, { type: "placePart", kind: "resistor" })).toBe(true);
-    expect(isToolActive({ type: "placePart", kind: "resistor" }, { type: "placePart", kind: "diode" })).toBe(false);
+    expect(
+      isToolActive(
+        { type: "placePart", kind: "resistor" },
+        { type: "placePart", kind: "resistor" },
+      ),
+    ).toBe(true);
+    expect(
+      isToolActive({ type: "placePart", kind: "resistor" }, { type: "placePart", kind: "diode" }),
+    ).toBe(false);
   });
 
   it("converts part kind while preserving id/value/placement", () => {
     vi.stubGlobal("crypto", undefined);
     vi.spyOn(Date, "now").mockReturnValue(1);
     vi.spyOn(Math, "random").mockReturnValue(0.2);
-    const part = makeInline2Part({ id: "p1", ref: "R12", kind: "resistor", value: "10k", origin: { x: 2, y: 2 } });
+    const part = makeInline2Part({
+      id: "p1",
+      ref: "R12",
+      kind: "resistor",
+      value: "10k",
+      origin: { x: 2, y: 2 },
+    });
     const next = convertPartKind(part, "capacitor");
     expect(next.id).toBe("p1");
     expect(next.value).toBe("10k");
@@ -42,7 +55,13 @@ describe("appUtils", () => {
   });
 
   it("maps reference prefixes for all part kinds", () => {
-    const part = makeInline2Part({ id: "p1", ref: "R99", kind: "resistor", value: "10k", origin: { x: 2, y: 2 } });
+    const part = makeInline2Part({
+      id: "p1",
+      ref: "R99",
+      kind: "resistor",
+      value: "10k",
+      origin: { x: 2, y: 2 },
+    });
     const expectations = {
       resistor: "R99",
       switch: "SW99",
@@ -60,7 +79,10 @@ describe("appUtils", () => {
       dip: "U99",
     } as const;
 
-    for (const [kind, expectedRef] of Object.entries(expectations) as [keyof typeof expectations, string][]) {
+    for (const [kind, expectedRef] of Object.entries(expectations) as [
+      keyof typeof expectations,
+      string,
+    ][]) {
       const converted = convertPartKind(part, kind);
       expect(converted.ref).toBe(expectedRef);
     }
@@ -74,15 +96,30 @@ describe("appUtils", () => {
     expect(netDisplayName({ id: "n2", terminals: [] }, 1)).toBe("Net 2");
 
     const part = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 } });
-    expect(formatTerminal({ kind: "hole", hole: { x: 0, y: 0 } }, [part], { rows: "alpha", cols: "numeric" })).toEqual({
+    expect(
+      formatTerminal({ kind: "hole", hole: { x: 0, y: 0 } }, [part], {
+        rows: "alpha",
+        cols: "numeric",
+      }),
+    ).toEqual({
       title: "A1",
       meta: "hole",
     });
-    expect(formatTerminal({ kind: "pin", partId: "missing", pinId: "1" }, [part], { rows: "alpha", cols: "numeric" })).toEqual({
+    expect(
+      formatTerminal({ kind: "pin", partId: "missing", pinId: "1" }, [part], {
+        rows: "alpha",
+        cols: "numeric",
+      }),
+    ).toEqual({
       title: "pin 1",
       meta: "missing part",
     });
-    expect(formatTerminal({ kind: "pin", partId: "p1", pinId: "1" }, [part], { rows: "alpha", cols: "numeric" })).toEqual({
+    expect(
+      formatTerminal({ kind: "pin", partId: "p1", pinId: "1" }, [part], {
+        rows: "alpha",
+        cols: "numeric",
+      }),
+    ).toEqual({
       title: "R1.1",
       meta: "resistor",
     });
@@ -92,7 +129,13 @@ describe("appUtils", () => {
     expect(clampBoardSize(0)).toBe(BOARD_MIN);
     expect(clampBoardSize(999)).toBe(BOARD_MAX);
     expect(clampBoardSize(10.6)).toBe(11);
-    expect(toggleBoardLabeling({ rows: "alpha", cols: "numeric" })).toEqual({ rows: "numeric", cols: "alpha" });
-    expect(toggleBoardLabeling({ rows: "numeric", cols: "alpha" })).toEqual({ rows: "alpha", cols: "numeric" });
+    expect(toggleBoardLabeling({ rows: "alpha", cols: "numeric" })).toEqual({
+      rows: "numeric",
+      cols: "alpha",
+    });
+    expect(toggleBoardLabeling({ rows: "numeric", cols: "alpha" })).toEqual({
+      rows: "alpha",
+      cols: "numeric",
+    });
   });
 });

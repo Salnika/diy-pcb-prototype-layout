@@ -54,13 +54,27 @@ function baseProjectObject() {
         footprint: { type: "dip", pins: 8, rowSpan: 3 },
       },
     ],
-    traces: [{ id: "t1", kind: "wire", layer: "bottom", nodes: [{ x: 1, y: 1 }, { x: 1, y: 2 }], color: "#55ccaa" }],
+    traces: [
+      {
+        id: "t1",
+        kind: "wire",
+        layer: "bottom",
+        nodes: [
+          { x: 1, y: 1 },
+          { x: 1, y: 2 },
+        ],
+        color: "#55ccaa",
+      },
+    ],
     netLabels: [{ id: "nl1", at: { x: 1, y: 1 }, name: "GND", offset: { dx: 1, dy: 2 } }],
     netlist: [
       {
         id: "n1",
         name: "VCC",
-        terminals: [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "hole", hole: { x: 1, y: 1 } }],
+        terminals: [
+          { kind: "pin", partId: "p1", pinId: "1" },
+          { kind: "hole", hole: { x: 1, y: 1 } },
+        ],
       },
     ],
     layoutConstraints: { fixedPartIds: ["p1"], fixedHoles: [{ x: 0, y: 0 }] },
@@ -103,15 +117,22 @@ describe("serialization", () => {
 
   it("throws explicit validation errors on malformed payloads", () => {
     expect(() => parseProject("[]")).toThrow("Project must be a JSON object");
-    expect(() => parse({ ...baseProjectObject(), schemaVersion: "2.0" })).toThrow("schemaVersion must be one of");
-    expect(() => parse({ ...baseProjectObject(), board: 12 })).toThrow("board must be an object");
-    expect(() => parse({ ...baseProjectObject(), board: { ...baseProjectObject().board, width: 1.2 } })).toThrow(
-      "board.width must be an integer",
+    expect(() => parse({ ...baseProjectObject(), schemaVersion: "2.0" })).toThrow(
+      "schemaVersion must be one of",
     );
+    expect(() => parse({ ...baseProjectObject(), board: 12 })).toThrow("board must be an object");
+    expect(() =>
+      parse({ ...baseProjectObject(), board: { ...baseProjectObject().board, width: 1.2 } }),
+    ).toThrow("board.width must be an integer");
     expect(() =>
       parse({
         ...baseProjectObject(),
-        parts: [{ ...baseProjectObject().parts[0], placement: { origin: { x: 0, y: 0 }, rotation: 45, flip: false } }],
+        parts: [
+          {
+            ...baseProjectObject().parts[0],
+            placement: { origin: { x: 0, y: 0 }, rotation: 45, flip: false },
+          },
+        ],
       }),
     ).toThrow("parts[0].placement.rotation must be one of");
     expect(() =>
@@ -123,18 +144,26 @@ describe("serialization", () => {
     expect(() =>
       parse({
         ...baseProjectObject(),
-        parts: [{ ...baseProjectObject().parts[0], footprint: { type: "dip", pins: 8, rowSpan: 4 } }],
+        parts: [
+          { ...baseProjectObject().parts[0], footprint: { type: "dip", pins: 8, rowSpan: 4 } },
+        ],
       }),
     ).toThrow("rowSpan must be 3");
-    expect(() => parse({ ...baseProjectObject(), traces: [{ id: "t", kind: "wire", layer: "bottom", nodes: [{}] }] })).toThrow(
-      "traces[0].nodes[0] must be a hole",
-    );
-    expect(() => parse({ ...baseProjectObject(), netLabels: [{ id: "n", at: { x: 1, y: 1 }, name: "A", offset: 1 }] })).toThrow(
-      "netLabels[0].offset must be an object",
-    );
-    expect(() => parse({ ...baseProjectObject(), netlist: [{ id: "n", terminals: [{}] }] })).toThrow(
-      "netlist[0].terminals[0].kind must be one of",
-    );
+    expect(() =>
+      parse({
+        ...baseProjectObject(),
+        traces: [{ id: "t", kind: "wire", layer: "bottom", nodes: [{}] }],
+      }),
+    ).toThrow("traces[0].nodes[0] must be a hole");
+    expect(() =>
+      parse({
+        ...baseProjectObject(),
+        netLabels: [{ id: "n", at: { x: 1, y: 1 }, name: "A", offset: 1 }],
+      }),
+    ).toThrow("netLabels[0].offset must be an object");
+    expect(() =>
+      parse({ ...baseProjectObject(), netlist: [{ id: "n", terminals: [{}] }] }),
+    ).toThrow("netlist[0].terminals[0].kind must be one of");
     expect(() => parse({ ...baseProjectObject(), layoutConstraints: 1 })).toThrow(
       "layoutConstraints must be an object",
     );
@@ -144,19 +173,34 @@ describe("serialization", () => {
     expect(() =>
       parse({
         ...baseProjectObject(),
-        parts: [{ ...baseProjectObject().parts[0], footprint: { type: "inline2", span: 1, pinLabels: ["1"] } }],
+        parts: [
+          {
+            ...baseProjectObject().parts[0],
+            footprint: { type: "inline2", span: 1, pinLabels: ["1"] },
+          },
+        ],
       }),
     ).toThrow("pinLabels must be a tuple of 2 strings");
     expect(() =>
       parse({
         ...baseProjectObject(),
-        parts: [{ ...baseProjectObject().parts[1], footprint: { type: "to92_inline3", pinNames: ["A", "B"] } }],
+        parts: [
+          {
+            ...baseProjectObject().parts[1],
+            footprint: { type: "to92_inline3", pinNames: ["A", "B"] },
+          },
+        ],
       }),
     ).toThrow("pinNames must be a tuple of 3 strings");
     expect(() =>
       parse({
         ...baseProjectObject(),
-        parts: [{ ...baseProjectObject().parts[2], footprint: { type: "free2", dx: 1, dy: 1, pinLabels: ["+"] } }],
+        parts: [
+          {
+            ...baseProjectObject().parts[2],
+            footprint: { type: "free2", dx: 1, dy: 1, pinLabels: ["+"] },
+          },
+        ],
       }),
     ).toThrow("pinLabels must be a tuple of 2 strings");
     expect(() =>

@@ -7,4 +7,3 @@ export function createId(prefix: string): string {
   const time = Date.now().toString(16);
   return `${prefix}_${time}_${rand}`;
 }
-

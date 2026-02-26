@@ -10,7 +10,12 @@ describe("autoLayout.engine", () => {
       width: 8,
       height: 8,
       parts: [p1, p2],
-      netlist: [makeNet("n1", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p2", pinId: "1" }])],
+      netlist: [
+        makeNet("n1", [
+          { kind: "pin", partId: "p1", pinId: "1" },
+          { kind: "pin", partId: "p2", pinId: "1" },
+        ]),
+      ],
     });
 
     const a = autoLayout(project, { seed: 7, iterations: 50, restarts: 3, allowRotate: true });
@@ -32,17 +37,39 @@ describe("autoLayout.engine", () => {
   });
 
   it("keeps fixed parts unchanged and supports no-rotate mode", () => {
-    const p1 = makeInline2Part({ id: "p1", ref: "R1", origin: { x: 1, y: 1 }, rotation: 90, span: 2 });
-    const p2 = makeInline2Part({ id: "p2", ref: "R2", origin: { x: 4, y: 1 }, rotation: 0, span: 2 });
+    const p1 = makeInline2Part({
+      id: "p1",
+      ref: "R1",
+      origin: { x: 1, y: 1 },
+      rotation: 90,
+      span: 2,
+    });
+    const p2 = makeInline2Part({
+      id: "p2",
+      ref: "R2",
+      origin: { x: 4, y: 1 },
+      rotation: 0,
+      span: 2,
+    });
     const project = makeProject({
       width: 10,
       height: 5,
       parts: [p1, p2],
       fixedPartIds: ["p1"],
-      netlist: [makeNet("n", [{ kind: "pin", partId: "p1", pinId: "1" }, { kind: "pin", partId: "p2", pinId: "1" }])],
+      netlist: [
+        makeNet("n", [
+          { kind: "pin", partId: "p1", pinId: "1" },
+          { kind: "pin", partId: "p2", pinId: "1" },
+        ]),
+      ],
     });
 
-    const result = autoLayout(project, { seed: 11, iterations: 25, restarts: 2, allowRotate: false });
+    const result = autoLayout(project, {
+      seed: 11,
+      iterations: 25,
+      restarts: 2,
+      allowRotate: false,
+    });
     const fixed = result.project.parts.find((p) => p.id === "p1");
     const moved = result.project.parts.find((p) => p.id === "p2");
     expect(fixed?.placement).toEqual(p1.placement);

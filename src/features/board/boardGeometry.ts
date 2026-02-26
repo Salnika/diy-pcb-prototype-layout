@@ -5,9 +5,9 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 export const PITCH_PX = 18;
 export const GUTTER_LEFT = 34;
 export const GUTTER_TOP = 26;
-export const LABEL_CHAR_WIDTH = 7;
+const LABEL_CHAR_WIDTH = 7;
 export const LABEL_HEIGHT = 18;
-export const LABEL_PADDING_X = 10;
+const LABEL_PADDING_X = 10;
 export const LABEL_TEXT_OFFSET_X = 5;
 export const LABEL_TEXT_OFFSET_Y = 13;
 export const LABEL_DEFAULT_OFFSET = { dx: 6, dy: -10 };
@@ -16,7 +16,10 @@ export function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
-export function svgPointFromEvent(svg: SVGSVGElement, ev: ReactPointerEvent<SVGSVGElement> | WheelEvent) {
+export function svgPointFromEvent(
+  svg: SVGSVGElement,
+  ev: ReactPointerEvent<SVGSVGElement> | WheelEvent,
+) {
   const ctm = svg.getScreenCTM();
   if (ctm) {
     const p = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(ctm.inverse());
@@ -75,7 +78,10 @@ export function labelTextPos(rect: { x: number; y: number }): { x: number; y: nu
   return { x: rect.x + LABEL_TEXT_OFFSET_X, y: rect.y + LABEL_TEXT_OFFSET_Y };
 }
 
-export function labelLeaderTarget(rect: { x: number; y: number; width: number; height: number }): { x: number; y: number } {
+export function labelLeaderTarget(rect: { x: number; y: number; width: number; height: number }): {
+  x: number;
+  y: number;
+} {
   return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
 }
 

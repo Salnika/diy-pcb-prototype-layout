@@ -57,7 +57,11 @@ describe("buildSchematicSymbol", () => {
     expect(circles.length).toBeGreaterThanOrEqual(3);
     expect(circles.some((circle) => circle.cx === 0 && circle.cy === 0)).toBe(true);
     expect(circles.some((circle) => circle.cx === 0 && circle.cy === 20)).toBe(true);
-    expect(lines.some((line) => (line.x1 === 20 && line.y1 === 10) || (line.x2 === 20 && line.y2 === 10))).toBe(true);
+    expect(
+      lines.some(
+        (line) => (line.x1 === 20 && line.y1 === 10) || (line.x2 === 20 && line.y2 === 10),
+      ),
+    ).toBe(true);
     expect(lines.some((line) => line.x1 !== line.x2 && line.y1 !== line.y2)).toBe(true);
     expect(sw3.texts.map((t) => t.text)).toEqual(expect.arrayContaining(["OUT1", "IN", "OUT2"]));
   });
@@ -71,14 +75,20 @@ describe("buildSchematicSymbol", () => {
 
   it("builds potentiometer symbol with wiper text", () => {
     const part = makeTo92Part({ id: "rv1", ref: "RV1", kind: "potentiometer" });
-    const symbol = buildSchematicSymbol(part, pins(["1", "1", 0, 0], ["2", "2", 10, -10], ["3", "3", 20, 0]));
+    const symbol = buildSchematicSymbol(
+      part,
+      pins(["1", "1", 0, 0], ["2", "2", 10, -10], ["3", "3", 20, 0]),
+    );
     expect(symbol.primitives.some((p) => p.type === "polyline")).toBe(true);
     expect(symbol.texts.some((t) => t.text === "2")).toBe(true);
   });
 
   it("builds jack symbol and handles missing pins", () => {
     const part = makeTo92Part({ id: "j1", ref: "J1", kind: "jack" });
-    const symbol = buildSchematicSymbol(part, pins(["1", "T", 0, 0], ["2", "R", 10, 0], ["3", "S", 20, 0]));
+    const symbol = buildSchematicSymbol(
+      part,
+      pins(["1", "T", 0, 0], ["2", "R", 10, 0], ["3", "S", 20, 0]),
+    );
     expect(symbol.primitives.some((p) => p.type === "rect")).toBe(true);
     expect(symbol.texts).toHaveLength(3);
 
@@ -89,15 +99,24 @@ describe("buildSchematicSymbol", () => {
 
   it("builds power symbols (+/-/gnd)", () => {
     const pwrPos = buildSchematicSymbol(
-      { ...makeInline2Part({ id: "pp", ref: "PWR+", kind: "power_pos" }), footprint: { type: "single", pinLabel: "V+" } },
+      {
+        ...makeInline2Part({ id: "pp", ref: "PWR+", kind: "power_pos" }),
+        footprint: { type: "single", pinLabel: "V+" },
+      },
       pins(["1", "V+", 10, 20]),
     );
     const pwrNeg = buildSchematicSymbol(
-      { ...makeInline2Part({ id: "pn", ref: "PWR-", kind: "power_neg" }), footprint: { type: "single", pinLabel: "V-" } },
+      {
+        ...makeInline2Part({ id: "pn", ref: "PWR-", kind: "power_neg" }),
+        footprint: { type: "single", pinLabel: "V-" },
+      },
       pins(["1", "V-", 10, 20]),
     );
     const gnd = buildSchematicSymbol(
-      { ...makeInline2Part({ id: "g", ref: "GND", kind: "power_gnd" }), footprint: { type: "single", pinLabel: "GND" } },
+      {
+        ...makeInline2Part({ id: "g", ref: "GND", kind: "power_gnd" }),
+        footprint: { type: "single", pinLabel: "GND" },
+      },
       pins(["1", "GND", 10, 20]),
     );
 
@@ -151,7 +170,10 @@ describe("buildSchematicSymbol", () => {
       pins(["1", "E", 0, 0]),
     );
     const dip = buildSchematicSymbol(
-      { ...makeInline2Part({ id: "u1", ref: "U1", kind: "dip" }), footprint: { type: "dip", pins: 8, rowSpan: 3 } },
+      {
+        ...makeInline2Part({ id: "u1", ref: "U1", kind: "dip" }),
+        footprint: { type: "dip", pins: 8, rowSpan: 3 },
+      },
       [],
     );
     expect(transistor.primitives).toEqual([]);

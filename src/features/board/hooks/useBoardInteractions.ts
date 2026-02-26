@@ -1,5 +1,19 @@
-import { useEffect, useMemo, useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent } from "react";
-import { makeDefaultPart, type Action, type Selection, type Tool, type TraceDraft, type Viewport } from "../../../app/store";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  type Dispatch,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
+import {
+  makeDefaultPart,
+  type Action,
+  type Selection,
+  type Tool,
+  type TraceDraft,
+  type Viewport,
+} from "../../../app/store";
+import type { DialogGateway } from "../../../app/effects/dialogGateway";
 import {
   createId,
   getPartPins,
@@ -26,7 +40,17 @@ import {
   labelWidth,
   svgPointFromEvent,
 } from "../boardGeometry";
-import { applyInline2Placement, createInline2Part, isInline2Kind, sameTerminal } from "../boardPlacement";
+import {
+  applyInline2Placement,
+  createInline2Part,
+  isInline2Kind,
+  sameTerminal,
+} from "../boardPlacement";
+import { useConnectInteractionController } from "./useConnectInteractionController";
+import { useLabelInteractionController } from "./useLabelInteractionController";
+import { usePartInteractionController } from "./usePartInteractionController";
+import { useTraceInteractionController } from "./useTraceInteractionController";
+import { useViewportController } from "./useViewportController";
 
 type UseBoardInteractionsParams = Readonly<{
   board: Board;
@@ -41,6 +65,7 @@ type UseBoardInteractionsParams = Readonly<{
   fixedPartIds: ReadonlySet<string>;
   netIndex: NetIndex;
   dispatch: Dispatch<Action>;
+  dialog?: Pick<DialogGateway, "prompt">;
 }>;
 
 export function useBoardInteractions({
@@ -56,60 +81,36 @@ export function useBoardInteractions({
   fixedPartIds,
   netIndex,
   dispatch,
+  dialog,
 }: UseBoardInteractionsParams) {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const panRef = useRef<{
-    pointerId: number;
-    start: { x: number; y: number };
-    pan: { x: number; y: number };
-  } | null>(null);
-  const dragRef = useRef<{
-    pointerId: number;
-    partId: string;
-    startPointerHole: Hole;
-    startOrigin: Hole;
-  } | null>(null);
-  const stretchRef = useRef<{
-    pointerId: number;
-    partId: string;
-    movingPinId: "1" | "2";
-    fixedHole: Hole;
-  } | null>(null);
-  const traceDragRef = useRef<{
-    pointerId: number;
-    traceId: string;
-    endpoint: "start" | "end";
-  } | null>(null);
-  const traceSegmentDragRef = useRef<{
-    pointerId: number;
-    traceId: string;
-    segmentIndex: number;
-  } | null>(null);
-  const traceNodeDragRef = useRef<{
-    pointerId: number;
-    traceId: string;
-    nodeIndex: number;
-  } | null>(null);
-  const labelDragRef = useRef<{
-    pointerId: number;
-    labelId: string;
-    grabOffset: { x: number; y: number };
-  } | null>(null);
-  const labelDraftRef = useRef<{
-    pointerId: number;
-    grabOffset: { x: number; y: number };
-  } | null>(null);
-  const inline2DraftRef = useRef<{
-    pointerId: number;
-    moved: boolean;
-  } | null>(null);
-
-  const [dragPreview, setDragPreview] = useState<Part | null>(null);
-  const [traceDragPreview, setTraceDragPreview] = useState<Trace | null>(null);
-  const [labelDragPreview, setLabelDragPreview] = useState<NetLabel | null>(null);
-  const [labelDraft, setLabelDraft] = useState<NetLabel | null>(null);
-  const [inline2DraftStart, setInline2DraftStart] = useState<Hole | null>(null);
-  const [connectDraft, setConnectDraft] = useState<NetTerminal | null>(null);
+  const { panRef } = useViewportController();
+  const {
+    dragRef,
+    stretchRef,
+    inline2DraftRef,
+    dragPreview,
+    setDragPreview,
+    inline2DraftStart,
+    setInline2DraftStart,
+    resetInline2Draft,
+  } = usePartInteractionController();
+  const {
+    traceDragRef,
+    traceSegmentDragRef,
+    traceNodeDragRef,
+    traceDragPreview,
+    setTraceDragPreview,
+  } = useTraceInteractionController();
+  const {
+    labelDragRef,
+    labelDraftRef,
+    labelDragPreview,
+    setLabelDragPreview,
+    labelDraft,
+    setLabelDraft,
+  } = useLabelInteractionController();
+  const { connectDraft, setConnectDraft } = useConnectInteractionController();
 
   const pinAtHole = useMemo(() => {
     const map = new Map<string, { partId: string; pinId: string }>();
@@ -135,12 +136,9 @@ export function useBoardInteractions({
     return pin?.hole ?? null;
   }
 
-  function resetInline2Draft() {
-    inline2DraftRef.current = null;
-    setInline2DraftStart(null);
-  }
-
-  function worldFromPointerEvent(event: ReactPointerEvent<SVGSVGElement>): { x: number; y: number } | null {
+  function worldFromPointerEvent(
+    event: ReactPointerEvent<SVGSVGElement>,
+  ): { x: number; y: number } | null {
     const svg = svgRef.current;
     if (!svg) return null;
     const point = svgPointFromEvent(svg, event);
@@ -161,7 +159,11 @@ export function useBoardInteractions({
     dispatch({ type: "SET_HOVER_HOLE", hole });
   }
 
-  function startInline2Stretch(part: Part, movingPinId: "1" | "2", event: ReactPointerEvent<SVGCircleElement>) {
+  function startInline2Stretch(
+    part: Part,
+    movingPinId: "1" | "2",
+    event: ReactPointerEvent<SVGCircleElement>,
+  ) {
     if (tool.type !== "select") return;
     if (fixedPartIds.has(part.id)) return;
     const pins = getPartPins(part);
@@ -177,16 +179,25 @@ export function useBoardInteractions({
       fixedHole: movingPinId === "1" ? pin2.hole : pin1.hole,
     };
     dispatch({ type: "SELECT", selection: { type: "part", id: part.id } });
+    dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.part.drag.started" } });
     setDragPreview(part);
   }
 
-  function startTraceDrag(trace: Trace, endpoint: "start" | "end", event: ReactPointerEvent<SVGCircleElement>) {
+  function startTraceDrag(
+    trace: Trace,
+    endpoint: "start" | "end",
+    event: ReactPointerEvent<SVGCircleElement>,
+  ) {
     if (tool.type !== "select") return;
     const svg = svgRef.current;
     if (svg) svg.setPointerCapture(event.pointerId);
     traceDragRef.current = { pointerId: event.pointerId, traceId: trace.id, endpoint };
     setTraceDragPreview(trace);
     dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
+    dispatch({
+      type: "INTERACTION_EVENT",
+      event: { type: "interaction.trace.endpoint.drag.started" },
+    });
   }
 
   function segmentAxis(a: Hole, b: Hole): "horizontal" | "vertical" | null {
@@ -249,33 +260,48 @@ export function useBoardInteractions({
 
     if (isFirst) {
       const start = nodes[0];
-      const moved = axis === "horizontal" ? { ...nodes[1], y: targetHole.y } : { ...nodes[1], x: targetHole.x };
-      const bridge = axis === "horizontal" ? { x: start.x, y: moved.y } : { x: moved.x, y: start.y };
+      const moved =
+        axis === "horizontal" ? { ...nodes[1], y: targetHole.y } : { ...nodes[1], x: targetHole.x };
+      const bridge =
+        axis === "horizontal" ? { x: start.x, y: moved.y } : { x: moved.x, y: start.y };
       const nextNodes = compactTraceNodes([start, bridge, moved, ...nodes.slice(2)]);
       if (!allNodesWithinBoard(nextNodes)) return null;
       return { ...trace, nodes: nextNodes };
     }
 
     const end = nodes[nodes.length - 1];
-    const moved = axis === "horizontal"
-      ? { ...nodes[nodes.length - 2], y: targetHole.y }
-      : { ...nodes[nodes.length - 2], x: targetHole.x };
+    const moved =
+      axis === "horizontal"
+        ? { ...nodes[nodes.length - 2], y: targetHole.y }
+        : { ...nodes[nodes.length - 2], x: targetHole.x };
     const bridge = axis === "horizontal" ? { x: end.x, y: moved.y } : { x: moved.x, y: end.y };
     const nextNodes = compactTraceNodes([...nodes.slice(0, -2), moved, bridge, end]);
     if (!allNodesWithinBoard(nextNodes)) return null;
     return { ...trace, nodes: nextNodes };
   }
 
-  function startTraceSegmentDrag(trace: Trace, segmentIndex: number, event: ReactPointerEvent<SVGCircleElement>) {
+  function startTraceSegmentDrag(
+    trace: Trace,
+    segmentIndex: number,
+    event: ReactPointerEvent<SVGCircleElement>,
+  ) {
     if (tool.type !== "select") return;
     const svg = svgRef.current;
     if (svg) svg.setPointerCapture(event.pointerId);
     traceSegmentDragRef.current = { pointerId: event.pointerId, traceId: trace.id, segmentIndex };
     setTraceDragPreview(trace);
     dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
+    dispatch({
+      type: "INTERACTION_EVENT",
+      event: { type: "interaction.trace.segment.drag.started" },
+    });
   }
 
-  function startTraceNodeDrag(trace: Trace, nodeIndex: number, event: ReactPointerEvent<SVGCircleElement>) {
+  function startTraceNodeDrag(
+    trace: Trace,
+    nodeIndex: number,
+    event: ReactPointerEvent<SVGCircleElement>,
+  ) {
     if (tool.type !== "select") return;
     if (nodeIndex <= 0 || nodeIndex >= trace.nodes.length - 1) return;
     const svg = svgRef.current;
@@ -283,6 +309,7 @@ export function useBoardInteractions({
     traceNodeDragRef.current = { pointerId: event.pointerId, traceId: trace.id, nodeIndex };
     setTraceDragPreview(trace);
     dispatch({ type: "SELECT", selection: { type: "trace", id: trace.id } });
+    dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.trace.node.drag.started" } });
   }
 
   function startLabelDrag(label: NetLabel, event: ReactPointerEvent<SVGGElement>) {
@@ -299,6 +326,7 @@ export function useBoardInteractions({
       grabOffset: { x: world.x - rect.x, y: world.y - rect.y },
     };
     setLabelDragPreview(label);
+    dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.label.drag.started" } });
   }
 
   function startPartDrag(part: Part, event: ReactPointerEvent<SVGGElement>) {
@@ -316,6 +344,7 @@ export function useBoardInteractions({
       startOrigin: part.placement.origin,
     };
     setDragPreview(part);
+    dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.part.drag.started" } });
   }
 
   function placeInline2FromPins(kind: PartKind, pin1: Hole, pin2: Hole) {
@@ -335,6 +364,7 @@ export function useBoardInteractions({
   useEffect(() => {
     if (tool.type !== "connect" && connectDraft) {
       setConnectDraft(null);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.connect.cancelled" } });
     }
   }, [connectDraft, tool.type]);
 
@@ -391,6 +421,7 @@ export function useBoardInteractions({
         start,
         pan: { ...viewport.pan },
       };
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.panning.started" } });
       return;
     }
 
@@ -409,6 +440,10 @@ export function useBoardInteractions({
           if (svg) svg.setPointerCapture(event.pointerId);
           inline2DraftRef.current = { pointerId: event.pointerId, moved: false };
           setInline2DraftStart(hole);
+          dispatch({
+            type: "INTERACTION_EVENT",
+            event: { type: "interaction.inline2.draft.started" },
+          });
           return;
         }
         const placed = placeInline2FromPins(tool.kind, inline2DraftStart, hole);
@@ -425,6 +460,7 @@ export function useBoardInteractions({
       const terminal = terminalFromHole(hole);
       if (connectDraft && sameTerminal(connectDraft, terminal)) {
         setConnectDraft(null);
+        dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.connect.cancelled" } });
         return;
       }
 
@@ -433,12 +469,14 @@ export function useBoardInteractions({
           dispatch({ type: "ADD_NET_TERMINAL", id: selection.id, terminal: connectDraft });
           dispatch({ type: "ADD_NET_TERMINAL", id: selection.id, terminal });
           setConnectDraft(null);
+          dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.connect.completed" } });
           return;
         }
         const netId = createId("net");
         dispatch({ type: "ADD_NET", net: { id: netId, terminals: [connectDraft, terminal] } });
         dispatch({ type: "SELECT", selection: { type: "net", id: netId } });
         setConnectDraft(null);
+        dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.connect.completed" } });
         return;
       }
 
@@ -448,6 +486,10 @@ export function useBoardInteractions({
       }
 
       setConnectDraft(terminal);
+      dispatch({
+        type: "INTERACTION_EVENT",
+        event: { type: "interaction.connect.firstTerminal.selected" },
+      });
       return;
     }
 
@@ -473,13 +515,21 @@ export function useBoardInteractions({
     if (tool.type === "label") {
       if (labelDraft) return;
       const netId = netIndex.holeToNetId.get(holeKey(hole));
-      const suggested = netId ? netIndex.netIdToName.get(netId) ?? "" : "";
-      const name = window.prompt("Nom du net (ex: GND, VCC)", suggested) ?? "";
+      const suggested = netId ? (netIndex.netIdToName.get(netId) ?? "") : "";
+      const name =
+        dialog?.prompt("Nom du net (ex: GND, VCC)", suggested) ??
+        window.prompt("Nom du net (ex: GND, VCC)", suggested) ??
+        "";
       const trimmed = name.trim();
       if (!trimmed) return;
       const svg = svgRef.current;
       if (svg) svg.setPointerCapture(event.pointerId);
-      const label: NetLabel = { id: createId("nl"), at: hole, name: trimmed, offset: { ...LABEL_DEFAULT_OFFSET } };
+      const label: NetLabel = {
+        id: createId("nl"),
+        at: hole,
+        name: trimmed,
+        offset: { ...LABEL_DEFAULT_OFFSET },
+      };
       const world = worldFromPointerEvent(event);
       if (world) {
         const center = holeCenterPx(hole);
@@ -495,6 +545,7 @@ export function useBoardInteractions({
         };
       }
       setLabelDraft(label);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.label.draft.started" } });
       return;
     }
 
@@ -579,7 +630,11 @@ export function useBoardInteractions({
           traceDragPreview?.id === traceNodeDrag.traceId
             ? traceDragPreview
             : traces.find((entry) => entry.id === traceNodeDrag.traceId);
-        if (source && traceNodeDrag.nodeIndex > 0 && traceNodeDrag.nodeIndex < source.nodes.length - 1) {
+        if (
+          source &&
+          traceNodeDrag.nodeIndex > 0 &&
+          traceNodeDrag.nodeIndex < source.nodes.length - 1
+        ) {
           const nextNodes = [...source.nodes];
           nextNodes[traceNodeDrag.nodeIndex] = hole;
           const compacted = compactTraceNodes(nextNodes);
@@ -657,7 +712,10 @@ export function useBoardInteractions({
 
   function onPointerUp(event: ReactPointerEvent<SVGSVGElement>) {
     const pan = panRef.current;
-    if (pan && pan.pointerId === event.pointerId) panRef.current = null;
+    if (pan && pan.pointerId === event.pointerId) {
+      panRef.current = null;
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.panning.ended" } });
+    }
 
     const stretch = stretchRef.current;
     if (stretch && stretch.pointerId === event.pointerId) {
@@ -666,6 +724,7 @@ export function useBoardInteractions({
       }
       stretchRef.current = null;
       setDragPreview(null);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.part.drag.ended" } });
       return;
     }
 
@@ -676,26 +735,43 @@ export function useBoardInteractions({
       }
       traceDragRef.current = null;
       setTraceDragPreview(null);
+      dispatch({
+        type: "INTERACTION_EVENT",
+        event: { type: "interaction.trace.endpoint.drag.ended" },
+      });
       return;
     }
 
     const traceSegmentDrag = traceSegmentDragRef.current;
     if (traceSegmentDrag && traceSegmentDrag.pointerId === event.pointerId) {
       if (traceDragPreview && traceDragPreview.id === traceSegmentDrag.traceId) {
-        dispatch({ type: "UPDATE_TRACE", id: traceSegmentDrag.traceId, nodes: traceDragPreview.nodes });
+        dispatch({
+          type: "UPDATE_TRACE",
+          id: traceSegmentDrag.traceId,
+          nodes: traceDragPreview.nodes,
+        });
       }
       traceSegmentDragRef.current = null;
       setTraceDragPreview(null);
+      dispatch({
+        type: "INTERACTION_EVENT",
+        event: { type: "interaction.trace.segment.drag.ended" },
+      });
       return;
     }
 
     const traceNodeDrag = traceNodeDragRef.current;
     if (traceNodeDrag && traceNodeDrag.pointerId === event.pointerId) {
       if (traceDragPreview && traceDragPreview.id === traceNodeDrag.traceId) {
-        dispatch({ type: "UPDATE_TRACE", id: traceNodeDrag.traceId, nodes: traceDragPreview.nodes });
+        dispatch({
+          type: "UPDATE_TRACE",
+          id: traceNodeDrag.traceId,
+          nodes: traceDragPreview.nodes,
+        });
       }
       traceNodeDragRef.current = null;
       setTraceDragPreview(null);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.trace.node.drag.ended" } });
       return;
     }
 
@@ -710,6 +786,7 @@ export function useBoardInteractions({
       }
       labelDragRef.current = null;
       setLabelDragPreview(null);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.label.drag.ended" } });
       return;
     }
 
@@ -720,6 +797,7 @@ export function useBoardInteractions({
       }
       dragRef.current = null;
       setDragPreview(null);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.part.drag.ended" } });
     }
 
     const labelDraftState = labelDraftRef.current;
@@ -730,6 +808,7 @@ export function useBoardInteractions({
         dispatch({ type: "SELECT", selection: { type: "netLabel", id: labelDraft.id } });
       }
       setLabelDraft(null);
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.label.draft.ended" } });
       return;
     }
 
@@ -737,10 +816,17 @@ export function useBoardInteractions({
     if (inline2Draft && inline2Draft.pointerId === event.pointerId) {
       inline2DraftRef.current = null;
       const hole = holeFromPointerEvent(event);
-      if (inline2DraftStart && inline2Draft.moved && hole && tool.type === "placePart" && isInline2Kind(tool.kind)) {
+      if (
+        inline2DraftStart &&
+        inline2Draft.moved &&
+        hole &&
+        tool.type === "placePart" &&
+        isInline2Kind(tool.kind)
+      ) {
         const placed = placeInline2FromPins(tool.kind, inline2DraftStart, hole);
         if (placed) resetInline2Draft();
       }
+      dispatch({ type: "INTERACTION_EVENT", event: { type: "interaction.inline2.draft.ended" } });
       return;
     }
   }
@@ -767,7 +853,9 @@ export function useBoardInteractions({
     }
 
     if (traceDragPreview) {
-      preview = preview.map((trace) => (trace.id === traceDragPreview.id ? traceDragPreview : trace));
+      preview = preview.map((trace) =>
+        trace.id === traceDragPreview.id ? traceDragPreview : trace,
+      );
     }
 
     return preview;
