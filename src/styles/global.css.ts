@@ -7,6 +7,7 @@ globalStyle("*, *::before, *::after", {
 
 globalStyle("html, body, #root", {
   height: "100%",
+  overflow: "hidden",
 });
 
 globalStyle("body", {
@@ -19,4 +20,3 @@ globalStyle("body", {
 globalStyle("button, input, select, textarea", {
   font: "inherit",
 });
-

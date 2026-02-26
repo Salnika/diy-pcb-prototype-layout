@@ -2,9 +2,9 @@ import { style } from "@vanilla-extract/css";
 import { vars } from "../styles/theme.css";
 
 export const app = style({
-  minHeight: "100%",
+  height: "100%",
   display: "grid",
-  gridTemplateRows: "48px 40px 1fr",
+  gridTemplateRows: "48px 40px minmax(0, 1fr)",
 });
 
 export const topBar = style({
@@ -85,6 +85,7 @@ export const main = style({
   minHeight: 0,
   display: "grid",
   gridTemplateColumns: "max-content 1fr 300px",
+  overflow: "hidden",
 });
 
 const paneBase = style({
@@ -106,18 +107,23 @@ export const centerPane = style({
   minHeight: 0,
   padding: vars.space.lg,
   background: vars.color.background,
+  overflow: "hidden",
 });
 
 export const rightPane = style([
   paneBase,
   {
+    minWidth: 0,
     borderLeft: `1px solid ${vars.color.border}`,
+    overflowY: "auto",
+    overflowX: "hidden",
   },
 ]);
 
 export const rightPaneCollapsed = style({
   padding: vars.space.sm,
   width: 44,
+  overflow: "hidden",
 });
 
 export const inspectorHeader = style({
