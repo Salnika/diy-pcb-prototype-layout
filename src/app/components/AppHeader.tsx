@@ -37,7 +37,7 @@ export function AppHeader({
 
   return (
     <header className={styles.topBar}>
-      <div className={styles.brand}>DiyPCBPrototype</div>
+      <div className={styles.brand}>Perfboard Designer</div>
       <div className={styles.topActions}>
         <button type="button" className={styles.iconButton} disabled={!canUndo} onClick={onUndo} title="Undo" aria-label="Undo">
           <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">

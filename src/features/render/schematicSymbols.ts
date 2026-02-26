@@ -200,11 +200,58 @@ function symbolForInline2(
   };
 }
 
-function symbolForSwitch(pins: readonly PinGeometry[]): PartSymbol {
-  const p1 = pickPin(pins, "1")?.center ?? pins[0]?.center;
-  const p2 = pickPin(pins, "2")?.center ?? pins[pins.length - 1]?.center;
-  if (!p1 || !p2) return { primitives: [], texts: [] };
+function switch3PinLabels(
+  pin1: PinGeometry,
+  pin2: PinGeometry,
+  pin3: PinGeometry,
+  normal: Point,
+): readonly SymbolText[] {
+  const defaults = ["1", "2", "3"];
+  const labels = [pin1.pinLabel, pin2.pinLabel, pin3.pinLabel];
+  const hasCustom = labels.some((label, index) => label && label !== defaults[index]);
+  if (!hasCustom) return [];
 
+  const dir1 = normalize(sub(pin1.center, pin2.center));
+  const dir3 = normalize(sub(pin3.center, pin2.center));
+  const dir2 = len(normal) < 1e-6 ? { x: 0, y: -1 } : normalize(normal);
+
+  const pos1 = add(pin1.center, mul(dir1, 7));
+  const pos2 = add(pin2.center, mul(dir2, 8));
+  const pos3 = add(pin3.center, mul(dir3, 7));
+
+  return [
+    {
+      type: "text",
+      role: "pinLabel",
+      x: pos1.x,
+      y: pos1.y + 3,
+      text: pin1.pinLabel,
+      textAnchor: anchorFromDirection(dir1),
+    },
+    {
+      type: "text",
+      role: "pinLabel",
+      x: pos2.x,
+      y: pos2.y + 3,
+      text: pin2.pinLabel,
+      textAnchor: anchorFromDirection(dir2),
+    },
+    {
+      type: "text",
+      role: "pinLabel",
+      x: pos3.x,
+      y: pos3.y + 3,
+      text: pin3.pinLabel,
+      textAnchor: anchorFromDirection(dir3),
+    },
+  ];
+}
+
+function symbolForSwitch2Pin(
+  p1: Point,
+  p2: Point,
+  labelPins: readonly PinGeometry[],
+): PartSymbol {
   const v = sub(p2, p1);
   const l = len(v);
   if (l < 1e-6) {
@@ -235,9 +282,62 @@ function symbolForSwitch(pins: readonly PinGeometry[]): PartSymbol {
       { type: "line", role: "body", x1: contactBarA.x, y1: contactBarA.y, x2: contactBarB.x, y2: contactBarB.y },
       { type: "circle", role: "body", cx: contactA.x, cy: contactA.y, r: 1.8 },
     ],
-    texts: inline2PinLabels(pins, mid),
+    texts: inline2PinLabels(labelPins, mid),
     refAnchor: { x: mid.x, y: mid.y - 10 },
   };
+}
+
+function symbolForSwitch3Pin(pin1: PinGeometry, pin2: PinGeometry, pin3: PinGeometry): PartSymbol {
+  const outA = pin1.center;
+  const common = pin2.center;
+  const outB = pin3.center;
+
+  const toA = sub(outA, common);
+  const toB = sub(outB, common);
+  const lenA = len(toA);
+  const lenB = len(toB);
+  if (lenA < 1e-6 || lenB < 1e-6) return fallbackLine([pin1, pin2, pin3]);
+
+  const dB = normalize(toB);
+  let n = perp(dB);
+  // Keep the lever on the same side as pin 1, matching the classic SPDT look.
+  if (n.x * toA.x + n.y * toA.y < 0) {
+    n = mul(n, -1);
+  }
+
+  const fixedGap = Math.max(1.5, Math.min(3.2, lenB * 0.28));
+  const fixedContact = sub(outB, mul(dB, fixedGap));
+  const leverLift = Math.max(2.8, Math.min(4.2, lenB * 0.45));
+  const leverEnd = add(fixedContact, mul(n, leverLift));
+  const contactBarHalf = 2.6;
+  const contactBarA = add(outB, mul(n, contactBarHalf));
+  const contactBarB = sub(outB, mul(n, contactBarHalf));
+  const freeStubLen = Math.max(2.2, Math.min(4.2, lenA * 0.45));
+  const freeStubEnd = sub(outA, mul(dB, freeStubLen));
+
+  return {
+    primitives: [
+      { type: "line", role: "body", x1: outA.x, y1: outA.y, x2: freeStubEnd.x, y2: freeStubEnd.y },
+      { type: "line", role: "body", x1: outB.x, y1: outB.y, x2: fixedContact.x, y2: fixedContact.y },
+      { type: "line", role: "body", x1: common.x, y1: common.y, x2: leverEnd.x, y2: leverEnd.y },
+      { type: "line", role: "body", x1: contactBarA.x, y1: contactBarA.y, x2: contactBarB.x, y2: contactBarB.y },
+      { type: "circle", role: "body", cx: common.x, cy: common.y, r: 1.6 },
+      { type: "circle", role: "body", cx: outA.x, cy: outA.y, r: 1.2 },
+      { type: "circle", role: "body", cx: outB.x, cy: outB.y, r: 1.2 },
+    ],
+    texts: switch3PinLabels(pin1, pin2, pin3, n),
+    refAnchor: add(midpoint(outA, outB), mul(n, 10)),
+  };
+}
+
+function symbolForSwitch(pins: readonly PinGeometry[]): PartSymbol {
+  const pin1 = pickPin(pins, "1") ?? pins[0];
+  const pin2 = pickPin(pins, "2") ?? pins[1];
+  const pin3 = pickPin(pins, "3") ?? pins[2];
+  if (!pin1 || !pin2) return { primitives: [], texts: [] };
+
+  if (pin3) return symbolForSwitch3Pin(pin1, pin2, pin3);
+  return symbolForSwitch2Pin(pin1.center, pin2.center, [pin1, pin2]);
 }
 
 function symbolForPotentiometer(pins: readonly PinGeometry[]): PartSymbol {

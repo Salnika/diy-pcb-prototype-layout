@@ -68,7 +68,7 @@ describe("useProjectIO", () => {
 
     result.current.exportJson();
     expect(downloadText).toHaveBeenCalledWith(
-      "My-Project.diypcb.json",
+      "My-Project.perfboard.json",
       expect.stringContaining('"schemaVersion"'),
       "application/json;charset=utf-8",
     );
@@ -88,7 +88,7 @@ describe("useProjectIO", () => {
     await result.current.exportPng();
 
     expect(downloadText).toHaveBeenCalledWith(
-      "project.diypcb.json",
+      "project.perfboard.json",
       expect.any(String),
       "application/json;charset=utf-8",
     );

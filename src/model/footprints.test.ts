@@ -32,6 +32,18 @@ describe("getPartPins", () => {
     expect(getPartPins(misc).map((p) => p.pinLabel)).toEqual(["1", "2", "3"]);
   });
 
+  it("uses an L-shaped 3-pin footprint for switch", () => {
+    const sw = {
+      ...makeTo92Part({ id: "sw", ref: "SW1", kind: "potentiometer" }),
+      kind: "switch" as const,
+      footprint: { type: "to92_inline3" as const, pinNames: ["OUT1", "IN", "OUT2"] as const },
+    };
+
+    const pins = getPartPins(sw);
+    expect(pins.map((pin) => pin.pinLabel)).toEqual(["OUT1", "IN", "OUT2"]);
+    expect(pins.map((pin) => pin.hole)).toEqual([{ x: 2, y: 2 }, { x: 3, y: 3 }, { x: 2, y: 4 }]);
+  });
+
   it("handles free2, single and dip footprints", () => {
     const free2 = {
       ...makeInline2Part({ id: "c1", ref: "C1" }),

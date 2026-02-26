@@ -11,7 +11,7 @@ function pins(...entries: Array<[string, string, number, number]>): PinGeometry[
 }
 
 describe("buildSchematicSymbol", () => {
-  it("builds inline 2 symbols (resistor, switch, diode, capacitor) with custom pin labels", () => {
+  it("builds inline 2 symbols (resistor, legacy switch, diode, capacitor) with custom pin labels", () => {
     const resistor = buildSchematicSymbol(
       makeInline2Part({ id: "p1", ref: "R1", kind: "resistor" }),
       pins(["1", "A", 0, 0], ["2", "B", 20, 0]),
@@ -36,6 +36,30 @@ describe("buildSchematicSymbol", () => {
     expect(capacitor.primitives.filter((p) => p.type === "line").length).toBeGreaterThanOrEqual(4);
     expect(resistor.texts.map((t) => t.text)).toEqual(expect.arrayContaining(["A", "B"]));
     expect(resistor.refAnchor).toBeDefined();
+  });
+
+  it("builds 3-pin switch symbol with middle input and two outputs", () => {
+    const sw3 = buildSchematicSymbol(
+      {
+        ...makeInline2Part({ id: "sw3", ref: "SW3", kind: "switch" }),
+        footprint: { type: "to92_inline3", pinNames: ["OUT1", "IN", "OUT2"] as const },
+      },
+      pins(["1", "OUT1", 0, 0], ["2", "IN", 20, 10], ["3", "OUT2", 0, 20]),
+    );
+
+    const lines = sw3.primitives.filter(
+      (p): p is Extract<(typeof sw3.primitives)[number], { type: "line" }> => p.type === "line",
+    );
+    const circles = sw3.primitives.filter(
+      (p): p is Extract<(typeof sw3.primitives)[number], { type: "circle" }> => p.type === "circle",
+    );
+    expect(lines.length).toBeGreaterThanOrEqual(4);
+    expect(circles.length).toBeGreaterThanOrEqual(3);
+    expect(circles.some((circle) => circle.cx === 0 && circle.cy === 0)).toBe(true);
+    expect(circles.some((circle) => circle.cx === 0 && circle.cy === 20)).toBe(true);
+    expect(lines.some((line) => (line.x1 === 20 && line.y1 === 10) || (line.x2 === 20 && line.y2 === 10))).toBe(true);
+    expect(lines.some((line) => line.x1 !== line.x2 && line.y1 !== line.y2)).toBe(true);
+    expect(sw3.texts.map((t) => t.text)).toEqual(expect.arrayContaining(["OUT1", "IN", "OUT2"]));
   });
 
   it("falls back to line for near-zero length inline2", () => {

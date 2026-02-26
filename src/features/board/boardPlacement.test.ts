@@ -5,7 +5,7 @@ import { makeInline2Part } from "../../test/fixtures";
 describe("boardPlacement", () => {
   it("detects inline2 kinds", () => {
     expect(isInline2Kind("resistor")).toBe(true);
-    expect(isInline2Kind("switch")).toBe(true);
+    expect(isInline2Kind("switch")).toBe(false);
     expect(isInline2Kind("capacitor_film")).toBe(true);
     expect(isInline2Kind("transistor")).toBe(false);
   });
@@ -46,6 +46,7 @@ describe("boardPlacement", () => {
     const part = createInline2Part("resistor", { x: 1, y: 1 }, { x: 3, y: 1 });
     expect(part?.ref).toBe("R?");
     expect(part?.footprint).toEqual({ type: "inline2", span: 2, pinLabels: undefined });
+    expect(createInline2Part("switch", { x: 1, y: 1 }, { x: 3, y: 1 })).toBeNull();
     expect(createInline2Part("resistor", { x: 1, y: 1 }, { x: 1, y: 1 })).toBeNull();
     expect(createInline2Part("transistor", { x: 1, y: 1 }, { x: 2, y: 2 })).toBeNull();
   });

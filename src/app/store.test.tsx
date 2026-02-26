@@ -91,6 +91,12 @@ describe("store", () => {
     expect(state().project.parts.map((p) => p.ref)).toEqual(["R1", "R2"]);
   });
 
+  it("creates switch defaults with 3 pins and middle input label", () => {
+    const part = makeDefaultPart("switch", { x: 4, y: 4 });
+    expect(part.ref).toBe("SW?");
+    expect(part.footprint).toEqual({ type: "to92_inline3", pinNames: ["OUT1", "IN", "OUT2"] });
+  });
+
   it("manages trace workflow and viewport updates", () => {
     const { state, dispatch } = setupStore();
     act(() => {

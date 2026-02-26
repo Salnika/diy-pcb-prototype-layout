@@ -6,7 +6,12 @@ import { AppHeader } from "./components/AppHeader";
 import { InspectorPanel } from "./components/InspectorPanel";
 import { TabsBar } from "./components/TabsBar";
 import { ToolPalette } from "./components/ToolPalette";
-import { INSPECTOR_COLLAPSE_KEY, clampBoardSize, toggleBoardLabeling } from "./appUtils";
+import {
+  INSPECTOR_COLLAPSE_KEY,
+  LEGACY_INSPECTOR_COLLAPSE_KEY,
+  clampBoardSize,
+  toggleBoardLabeling,
+} from "./appUtils";
 import { useAppKeyboardShortcuts } from "./hooks/useAppKeyboardShortcuts";
 import { useProjectIO } from "./hooks/useProjectIO";
 import { useAppDispatch, useAppState } from "./store";
@@ -17,7 +22,9 @@ export function App() {
   const dispatch = useAppDispatch();
   const [inspectorCollapsed, setInspectorCollapsed] = useState(() => {
     try {
-      return localStorage.getItem(INSPECTOR_COLLAPSE_KEY) === "1";
+      const current = localStorage.getItem(INSPECTOR_COLLAPSE_KEY);
+      if (current !== null) return current === "1";
+      return localStorage.getItem(LEGACY_INSPECTOR_COLLAPSE_KEY) === "1";
     } catch {
       return false;
     }

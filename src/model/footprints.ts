@@ -54,6 +54,14 @@ function defaultTo92PinNames(kind: Part["kind"]): readonly [string, string, stri
 
 function to92Inline3(kind: Part["kind"], pinNames?: readonly [string, string, string]): readonly PinDef[] {
   const names = pinNames ?? defaultTo92PinNames(kind);
+  if (kind === "switch") {
+    return [
+      { pinId: "1", pinLabel: names[0] ?? "1", dx: 0, dy: 0 },
+      { pinId: "2", pinLabel: names[1] ?? "2", dx: 1, dy: 1 },
+      { pinId: "3", pinLabel: names[2] ?? "3", dx: 0, dy: 2 },
+    ];
+  }
+
   return [
     { pinId: "1", pinLabel: names[0] ?? "1", dx: 0, dy: 0 },
     { pinId: "2", pinLabel: names[1] ?? "2", dx: 1, dy: 0 },

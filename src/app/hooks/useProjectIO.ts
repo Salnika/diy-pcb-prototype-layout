@@ -29,7 +29,7 @@ export function useProjectIO({ project, dispatch }: UseProjectIOParams) {
   const exportJson = useCallback(() => {
     const name = safeFilename(project.meta.name ?? "project");
     const json = serializeProject(project);
-    downloadText(`${name}.diypcb.json`, json, "application/json;charset=utf-8");
+    downloadText(`${name}.perfboard.json`, json, "application/json;charset=utf-8");
   }, [project]);
 
   const exportSvg = useCallback(() => {

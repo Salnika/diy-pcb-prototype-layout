@@ -12,7 +12,6 @@ type TwoPinPlacement = {
 export function isInline2Kind(kind: PartKind): boolean {
   return (
     kind === "resistor" ||
-    kind === "switch" ||
     kind === "diode" ||
     kind === "capacitor" ||
     kind === "capacitor_ceramic" ||

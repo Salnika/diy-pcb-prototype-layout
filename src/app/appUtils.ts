@@ -4,7 +4,8 @@ import { makeDefaultPart, type Tool } from "./store";
 
 export const BOARD_MIN = 1;
 export const BOARD_MAX = 64;
-export const INSPECTOR_COLLAPSE_KEY = "diypcbprototype.ui.inspectorCollapsed";
+export const INSPECTOR_COLLAPSE_KEY = "perfboard-designer.ui.inspectorCollapsed";
+export const LEGACY_INSPECTOR_COLLAPSE_KEY = "diypcbprototype.ui.inspectorCollapsed";
 
 export function isToolActive(current: Tool, candidate: Tool): boolean {
   if (current.type !== candidate.type) return false;

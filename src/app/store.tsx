@@ -132,9 +132,11 @@ export type Action =
   | { type: "SET_VIEWPORT"; viewport: Viewport }
   | { type: "CLEAR_ERROR" };
 
-const STORAGE_KEY = "diypcbprototype.project.v1";
-const STORAGE_TABS_KEY = "diypcbprototype.tabs.v1";
-const STORAGE_PROJECT_PREFIX = "diypcbprototype.project.";
+const STORAGE_KEY = "perfboard-designer.project.v1";
+const STORAGE_TABS_KEY = "perfboard-designer.tabs.v1";
+const STORAGE_PROJECT_PREFIX = "perfboard-designer.project.";
+const LEGACY_STORAGE_KEY = "diypcbprototype.project.v1";
+const LEGACY_STORAGE_TABS_KEY = "diypcbprototype.tabs.v1";
 
 function defaultUiState(): TabState["ui"] {
   return {
@@ -197,7 +199,7 @@ function createInitialState(): AppState {
   let activeTabId = "";
 
   try {
-    const rawTabs = localStorage.getItem(STORAGE_TABS_KEY);
+    const rawTabs = localStorage.getItem(STORAGE_TABS_KEY) ?? localStorage.getItem(LEGACY_STORAGE_TABS_KEY);
     if (rawTabs) {
       const data = JSON.parse(rawTabs) as unknown;
       if (typeof data === "object" && data && "tabs" in data && Array.isArray((data as any).tabs)) {
@@ -205,9 +207,10 @@ function createInitialState(): AppState {
         for (let i = 0; i < records.length; i += 1) {
           const record = records[i];
           if (!record?.id || !record?.projectKey) continue;
-          const project = loadProjectFromStorage(record.projectKey);
-          if (project) tabs.push(makeTabState(project, record.projectKey, record.id));
-          else tabs.push(makeTabState(createNewProject(nextTabName(tabs)), record.projectKey, record.id));
+          const projectKey = `${STORAGE_PROJECT_PREFIX}${record.id}`;
+          const project = loadProjectFromStorage(projectKey) ?? loadProjectFromStorage(record.projectKey);
+          if (project) tabs.push(makeTabState(project, projectKey, record.id));
+          else tabs.push(makeTabState(createNewProject(nextTabName(tabs)), projectKey, record.id));
         }
         if (typeof (data as any).activeTabId === "string") {
           activeTabId = (data as any).activeTabId;
@@ -219,9 +222,9 @@ function createInitialState(): AppState {
   }
 
   if (tabs.length === 0) {
-    let project = createNewProject("DiyPCBPrototype");
+    let project = createNewProject("Perfboard Designer");
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
       if (raw) project = parseProject(raw);
     } catch {
       // ignore
@@ -284,7 +287,7 @@ export function makeDefaultPart(kind: PartKind, origin: Hole, rotation: Rotation
     case "resistor":
       return { ...base, ref: "R?", footprint: { type: "inline2", span: 6 } };
     case "switch":
-      return { ...base, ref: "SW?", footprint: { type: "inline2", span: 2 } };
+      return { ...base, ref: "SW?", footprint: { type: "to92_inline3", pinNames: ["OUT1", "IN", "OUT2"] } };
     case "diode":
       return { ...base, ref: "D?", footprint: { type: "inline2", span: 4 } };
     case "capacitor":
