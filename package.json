@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prepare": "lefthook install",
     "build": "tsc -b && vite build",
     "lint": "oxlint src",
     "format": "oxfmt --write src",
@@ -31,8 +32,9 @@
     "@vitest/coverage-v8": "^4.0.18",
     "jsdom": "^28.1.0",
     "knip": "^5.85.0",
-    "oxlint": "^1.50.0",
+    "lefthook": "^2.1.1",
     "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
