@@ -2,6 +2,7 @@ import { createTheme, createThemeContract } from "@vanilla-extract/css";
 
 export const vars = createThemeContract({
   color: {
+    // Board rendering tokens (kept stable to preserve central canvas behavior/appearance).
     background: null,
     surface: null,
     surface2: null,
@@ -12,9 +13,24 @@ export const vars = createThemeContract({
     accent2: null,
     danger: null,
     warning: null,
+    // Shell/chrome tokens for the refactored UI around the board.
+    chromeAppBg: null,
+    chromePanel: null,
+    chromePanelAlt: null,
+    chromePanelMuted: null,
+    chromeText: null,
+    chromeMutedText: null,
+    chromeBorder: null,
+    chromeBorderStrong: null,
+    chromeAccent: null,
+    chromeAccentSoft: null,
+    chromeDangerSoft: null,
+    chromeOverlay: null,
+    focusRing: null,
   },
   font: {
     body: null,
+    bodyAlt: null,
     mono: null,
   },
   space: {
@@ -28,27 +44,49 @@ export const vars = createThemeContract({
     sm: null,
     md: null,
     lg: null,
+    xl: null,
   },
   shadow: {
     sm: null,
+    md: null,
+    lg: null,
+    inset: null,
+  },
+  motion: {
+    fast: null,
+    normal: null,
   },
 });
 
 export const themeClass = createTheme(vars, {
   color: {
-    background: "#0b0c10",
-    surface: "#111218",
-    surface2: "#171923",
-    text: "#eef0ff",
-    mutedText: "#aab0d6",
-    border: "rgba(238, 240, 255, 0.12)",
-    accent: "#6ea8fe",
-    accent2: "#7ee787",
-    danger: "#ff6b6b",
-    warning: "#ffd166",
+    background: "#020617",
+    surface: "#0f172a",
+    surface2: "#111c33",
+    text: "#e5e7eb",
+    mutedText: "#9ca3af",
+    border: "#1e293b",
+    accent: "#38bdf8",
+    accent2: "#7dd3fc",
+    danger: "#f87171",
+    warning: "#f59e0b",
+    chromeAppBg: "#020617",
+    chromePanel: "#0f172a",
+    chromePanelAlt: "#0b1426",
+    chromePanelMuted: "#101c33",
+    chromeText: "#e5e7eb",
+    chromeMutedText: "#9ca3af",
+    chromeBorder: "#1e293b",
+    chromeBorderStrong: "#334155",
+    chromeAccent: "#38bdf8",
+    chromeAccentSoft: "rgba(56, 189, 248, 0.18)",
+    chromeDangerSoft: "rgba(248, 113, 113, 0.16)",
+    chromeOverlay: "rgba(2, 6, 23, 0.72)",
+    focusRing: "rgba(56, 189, 248, 0.32)",
   },
   font: {
-    body: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+    body: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    bodyAlt: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
   },
   space: {
@@ -60,10 +98,18 @@ export const themeClass = createTheme(vars, {
   },
   radius: {
     sm: "6px",
-    md: "10px",
-    lg: "14px",
+    md: "8px",
+    lg: "10px",
+    xl: "12px",
   },
   shadow: {
-    sm: "0 1px 0 rgba(0,0,0,0.2), 0 12px 30px rgba(0,0,0,0.35)",
+    sm: "0 10px 24px rgba(2, 6, 23, 0.32)",
+    md: "0 18px 42px rgba(2, 6, 23, 0.42)",
+    lg: "0 28px 64px rgba(2, 6, 23, 0.5)",
+    inset: "inset 0 1px 0 rgba(148, 163, 184, 0.08)",
+  },
+  motion: {
+    fast: "130ms",
+    normal: "170ms",
   },
 });

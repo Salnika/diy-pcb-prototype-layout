@@ -70,7 +70,7 @@ export function InspectorDetailsView({
     <div className={styles.paneSection}>
       <div className={styles.inspectorRow}>
         <div className={styles.label}>Board</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div className={styles.twoColGrid}>
           <input
             className={styles.input}
             type="number"
@@ -98,7 +98,7 @@ export function InspectorDetailsView({
             aria-label="Board height"
           />
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className={styles.rowInlineWrap}>
           <button type="button" className={styles.smallButton} onClick={onToggleBoardLabeling}>
             Toggle labels
           </button>
@@ -141,7 +141,7 @@ export function InspectorDetailsView({
 
       <div className={styles.inspectorRow}>
         <div className={styles.label}>Constraints</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.rowInlineWrap}>
           <span className={styles.chip}>Fixed parts: {fixedPartCount}</span>
           <span className={styles.chip}>Fixed holes: {fixedHoleCount}</span>
         </div>
@@ -246,7 +246,7 @@ export function InspectorDetailsView({
                 return (
                   <div className={styles.inspectorRow}>
                     <div className={styles.label}>Pins (labels)</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                    <div className={styles.threeColGrid}>
                       {([0, 1, 2] as const).map((idx) => (
                         <input
                           key={idx}
@@ -276,7 +276,7 @@ export function InspectorDetailsView({
             {selectedPart.placement.origin.x + 1} - Rot {selectedPart.placement.rotation}°
           </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className={styles.rowInlineWrap}>
             <button
               type="button"
               className={selectedPartFixed ? styles.smallButtonActive : styles.smallButton}
@@ -318,13 +318,13 @@ export function InspectorDetailsView({
             >
               <span
                 className={styles.traceColorDot}
-                style={{ backgroundColor: selectedTraceDisplayColor ?? "#6ea8fe" }}
+                style={{ backgroundColor: selectedTraceDisplayColor ?? "#38bdf8" }}
               />
             </button>
             <input
               ref={traceColorInputRef}
               type="color"
-              value={selectedTrace.color ?? selectedTraceDisplayColor ?? "#6ea8fe"}
+              value={selectedTrace.color ?? selectedTraceDisplayColor ?? "#38bdf8"}
               className={styles.traceColorInput}
               onChange={(event) => {
                 const color = event.target.value;

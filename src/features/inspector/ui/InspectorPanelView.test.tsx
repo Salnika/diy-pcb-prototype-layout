@@ -6,6 +6,7 @@ import { InspectorPanelView } from "./InspectorPanelView";
 function baseProps() {
   return {
     collapsed: false,
+    mobileOpen: false,
     activeTab: "inspector" as const,
     board: {
       type: "perfboard" as const,
@@ -29,6 +30,7 @@ function baseProps() {
     bomRows: [],
     onAction: vi.fn<(action: Action) => void>(),
     onToggleCollapsed: vi.fn(),
+    onRequestCloseMobile: vi.fn(),
     onUpdateBoardSize: vi.fn(),
     onToggleBoardLabeling: vi.fn(),
     onChangeTab: vi.fn(),

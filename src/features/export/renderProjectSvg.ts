@@ -107,12 +107,12 @@ function renderPart(part: Part): string {
   const valueLabelY = isDip ? labelAnchor.y + 5 : labelAnchor.y + 10;
 
   const bodyFillStyle =
-    "fill:rgba(255,255,255,0.04);stroke:rgba(238,240,255,0.45);stroke-width:2;stroke-linejoin:round;stroke-linecap:round";
+    "fill:rgba(15,23,42,0.8);stroke:rgba(148,163,184,0.6);stroke-width:2;stroke-linejoin:round;stroke-linecap:round";
   const bodyStrokeStyle =
-    "fill:none;stroke:rgba(238,240,255,0.45);stroke-width:2;stroke-linejoin:round;stroke-linecap:round";
-  const pin1Style = "fill:#6ea8fe;stroke:rgba(17,18,24,0.8);stroke-width:1";
+    "fill:none;stroke:rgba(148,163,184,0.6);stroke-width:2;stroke-linejoin:round;stroke-linecap:round";
+  const pin1Style = "fill:#38bdf8;stroke:rgba(15,23,42,0.85);stroke-width:1";
   const pinTextStyle =
-    "fill:#aab0d6;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:8";
+    "fill:#9ca3af;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:8";
 
   const primitives = symbol.primitives
     .map((primitive) => {
@@ -140,17 +140,17 @@ function renderPart(part: Part): string {
   const pinCircles = pins
     .map((pin) => {
       const c = holeCenterPx(pin.hole);
-      return `<circle cx="${c.x}" cy="${c.y}" r="3" style="fill:rgba(238,240,255,0.9);stroke:rgba(17,18,24,0.8);stroke-width:1" />`;
+      return `<circle cx="${c.x}" cy="${c.y}" r="3" style="fill:rgba(229,231,235,0.92);stroke:rgba(15,23,42,0.85);stroke-width:1" />`;
     })
     .join("");
 
-  const text = `<text x="${labelAnchor.x}" y="${refLabelY}" text-anchor="middle" style="fill:#eef0ff;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:11">${esc(
+  const text = `<text x="${labelAnchor.x}" y="${refLabelY}" text-anchor="middle" style="fill:#e5e7eb;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:11">${esc(
     part.ref,
   )}</text>${
     partValue
       ? `<text x="${labelAnchor.x}" y="${
           valueLabelY
-        }" text-anchor="middle" style="fill:#aab0d6;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:9">${esc(
+        }" text-anchor="middle" style="fill:#9ca3af;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:9">${esc(
           partValue,
         )}</text>`
       : ""
@@ -178,7 +178,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
   const labelsTop = Array.from({ length: board.width })
     .map((_, x) => {
       const cx = GUTTER_LEFT + (x + 0.5) * PITCH_PX;
-      return `<text x="${cx}" y="16" text-anchor="middle" style="fill:#aab0d6;font-size:11;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">${esc(
+      return `<text x="${cx}" y="16" text-anchor="middle" style="fill:#9ca3af;font-size:11;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">${esc(
         axisLabel(board.labeling.cols, x),
       )}</text>`;
     })
@@ -187,7 +187,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
   const labelsLeft = Array.from({ length: board.height })
     .map((_, y) => {
       const cy = GUTTER_TOP + (y + 0.5) * PITCH_PX + 4;
-      return `<text x="16" y="${cy}" text-anchor="middle" style="fill:#aab0d6;font-size:11;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">${esc(
+      return `<text x="16" y="${cy}" text-anchor="middle" style="fill:#9ca3af;font-size:11;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">${esc(
         axisLabel(board.labeling.rows, y),
       )}</text>`;
     })
@@ -195,7 +195,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
 
   const boardBg = `<rect x="${GUTTER_LEFT}" y="${GUTTER_TOP}" width="${board.width * PITCH_PX}" height="${
     board.height * PITCH_PX
-  }" rx="10" style="fill:rgba(255,255,255,0.03);stroke:rgba(238,240,255,0.12)" />`;
+  }" rx="10" style="fill:rgba(15,23,42,0.72);stroke:#1e293b" />`;
 
   const traces = project.traces.map((t) => renderTrace(t, netIndex)).join("");
   const parts = project.parts.map(renderPart).join("");
@@ -209,7 +209,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
       const netId = netIndex.holeToNetId.get(holeKey(nl.at)) ?? nl.id;
       const netName = netIndex.netIdToName.get(netId) ?? nl.name;
       const color = netColor(netId, netName);
-      return `<g><line x1="${c.x}" y1="${c.y}" x2="${leaderTarget.x}" y2="${leaderTarget.y}" style="stroke:${color};stroke-width:1.4;stroke-dasharray:4 4;opacity:0.8" /><rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" rx="6" style="fill:rgba(255,255,255,0.05);stroke:rgba(238,240,255,0.12)" /><text x="${textPos.x}" y="${textPos.y}" style="fill:#eef0ff;font-size:11;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">${esc(
+      return `<g><line x1="${c.x}" y1="${c.y}" x2="${leaderTarget.x}" y2="${leaderTarget.y}" style="stroke:${color};stroke-width:1.4;stroke-dasharray:4 4;opacity:0.8" /><rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" rx="6" style="fill:rgba(15,23,42,0.84);stroke:#1e293b" /><text x="${textPos.x}" y="${textPos.y}" style="fill:#e5e7eb;font-size:11;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">${esc(
         nl.name,
       )}</text></g>`;
     })
@@ -221,7 +221,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
       for (let x = 0; x < board.width; x += 1) {
         const cx = GUTTER_LEFT + (x + 0.5) * PITCH_PX;
         const cy = GUTTER_TOP + (y + 0.5) * PITCH_PX;
-        out += `<circle cx="${cx}" cy="${cy}" r="1.8" style="fill:rgba(238,240,255,0.14)" />`;
+        out += `<circle cx="${cx}" cy="${cy}" r="1.8" style="fill:rgba(148,163,184,0.26)" />`;
       }
     }
     return out;
@@ -229,7 +229,7 @@ export function renderProjectSvg(project: Project): { svg: string; width: number
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="100%" height="100%" style="fill:#0b0c10" />
+  <rect width="100%" height="100%" style="fill:#020617" />
   ${labelsTop}
   ${labelsLeft}
   ${boardBg}

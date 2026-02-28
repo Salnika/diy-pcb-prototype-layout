@@ -9,7 +9,7 @@ export const root = style({
   borderRadius: vars.radius.lg,
   background: vars.color.surface,
   border: `1px solid ${vars.color.border}`,
-  boxShadow: vars.shadow.sm,
+  boxShadow: "none",
   overflow: "hidden",
 });
 
@@ -59,12 +59,12 @@ export const label = style({
 });
 
 export const boardBg = style({
-  fill: "rgba(255,255,255,0.03)",
+  fill: "rgba(15, 23, 42, 0.72)",
   stroke: vars.color.border,
 });
 
 export const hole = style({
-  fill: "rgba(238,240,255,0.12)",
+  fill: "rgba(148, 163, 184, 0.2)",
 });
 
 export const holeHover = style({
@@ -92,13 +92,13 @@ export const traceSelected = style([
   {
     strokeWidth: 5,
     opacity: 1,
-    filter: "drop-shadow(0 0 6px rgba(110,168,254,0.35))",
+    filter: "drop-shadow(0 0 6px rgba(56, 189, 248, 0.35))",
   },
 ]);
 
 export const traceDraft = style({
   fill: "none",
-  stroke: "rgba(238,240,255,0.65)",
+  stroke: "rgba(148, 163, 184, 0.8)",
   strokeWidth: 2.5,
   strokeLinejoin: "round",
   strokeLinecap: "round",
@@ -106,14 +106,14 @@ export const traceDraft = style({
 });
 
 export const traceHandle = style({
-  fill: "rgba(110,168,254,0.16)",
+  fill: "rgba(56, 189, 248, 0.18)",
   stroke: vars.color.accent,
   strokeWidth: 1.5,
 });
 
 export const partBody = style({
-  fill: "rgba(255,255,255,0.04)",
-  stroke: "rgba(238,240,255,0.45)",
+  fill: "rgba(15, 23, 42, 0.8)",
+  stroke: "rgba(148, 163, 184, 0.6)",
   strokeWidth: 2,
   strokeLinejoin: "round",
   strokeLinecap: "round",
@@ -124,7 +124,7 @@ export const partBodySelected = style([
   {
     stroke: vars.color.accent,
     strokeWidth: 3,
-    filter: "drop-shadow(0 0 10px rgba(110,168,254,0.35))",
+    filter: "drop-shadow(0 0 10px rgba(56, 189, 248, 0.35))",
   },
 ]);
 
@@ -133,18 +133,18 @@ export const partBodyInvalid = style([
   {
     stroke: vars.color.danger,
     strokeWidth: 3,
-    fill: "rgba(255,107,107,0.08)",
+    fill: "rgba(248, 113, 113, 0.18)",
   },
 ]);
 
 export const partPin = style({
-  fill: "rgba(238,240,255,0.9)",
-  stroke: "rgba(17,18,24,0.8)",
+  fill: "rgba(229, 231, 235, 0.92)",
+  stroke: "rgba(15, 23, 42, 0.85)",
   strokeWidth: 1,
 });
 
 export const partPinHandle = style({
-  fill: "rgba(126,231,135,0.12)",
+  fill: "rgba(125, 211, 252, 0.15)",
   stroke: vars.color.accent2,
   strokeWidth: 0,
   ":hover": {
@@ -153,20 +153,20 @@ export const partPinHandle = style({
 });
 
 export const connectDraft = style({
-  fill: "rgba(110,168,254,0.18)",
+  fill: "rgba(56, 189, 248, 0.22)",
   stroke: vars.color.accent,
   strokeWidth: 2,
 });
 
 export const partLockMarker = style({
-  fill: "rgba(126,231,135,0.25)",
+  fill: "rgba(125, 211, 252, 0.28)",
   stroke: vars.color.accent2,
   strokeWidth: 1,
   pointerEvents: "none",
 });
 
 export const fixedHole = style({
-  fill: "rgba(126,231,135,0.16)",
+  fill: "rgba(125, 211, 252, 0.2)",
   stroke: vars.color.accent2,
   strokeWidth: 1,
 });
@@ -178,7 +178,7 @@ export const fixedHoleCross = style({
 
 export const partPin1Marker = style({
   fill: vars.color.accent,
-  stroke: "rgba(17,18,24,0.8)",
+  stroke: "rgba(15, 23, 42, 0.85)",
   strokeWidth: 1,
   pointerEvents: "none",
 });
@@ -203,7 +203,7 @@ export const partPinLabel = style({
 });
 
 export const netLabelBg = style({
-  fill: "rgba(255,255,255,0.05)",
+  fill: "rgba(15, 23, 42, 0.84)",
   stroke: vars.color.border,
 });
 
@@ -211,7 +211,7 @@ export const netLabelBgSelected = style([
   netLabelBg,
   {
     stroke: vars.color.accent,
-    fill: "rgba(110,168,254,0.12)",
+    fill: "rgba(56, 189, 248, 0.18)",
   },
 ]);
 
@@ -222,7 +222,7 @@ export const netLabelText = style({
 });
 
 export const netLabelLeader = style({
-  stroke: "rgba(238,240,255,0.55)",
+  stroke: "rgba(148, 163, 184, 0.7)",
   strokeWidth: 1.4,
   strokeDasharray: "4 4",
 });

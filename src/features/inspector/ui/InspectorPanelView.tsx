@@ -7,6 +7,7 @@ import { InspectorDetailsView } from "./InspectorDetailsView";
 
 type InspectorPanelViewProps = Readonly<{
   collapsed: boolean;
+  mobileOpen: boolean;
   activeTab: "inspector" | "bom";
   board: Board;
   selection: Selection;
@@ -25,6 +26,7 @@ type InspectorPanelViewProps = Readonly<{
   bomRows: readonly BomRow[];
   onAction: (action: Action) => void;
   onToggleCollapsed: () => void;
+  onRequestCloseMobile: () => void;
   onUpdateBoardSize: (nextWidth: number, nextHeight: number) => void;
   onToggleBoardLabeling: () => void;
   onChangeTab: (tab: "inspector" | "bom") => void;
@@ -33,6 +35,7 @@ type InspectorPanelViewProps = Readonly<{
 
 export function InspectorPanelView({
   collapsed,
+  mobileOpen,
   activeTab,
   board,
   selection,
@@ -51,28 +54,57 @@ export function InspectorPanelView({
   bomRows,
   onAction,
   onToggleCollapsed,
+  onRequestCloseMobile,
   onUpdateBoardSize,
   onToggleBoardLabeling,
   onChangeTab,
   onExportBomCsv,
 }: InspectorPanelViewProps) {
+  const effectiveCollapsed = collapsed && !mobileOpen;
+
   return (
-    <aside className={`${styles.rightPane} ${collapsed ? styles.rightPaneCollapsed : ""}`}>
+    <aside
+      className={`${styles.rightPane} ${effectiveCollapsed ? styles.rightPaneCollapsed : ""} ${mobileOpen ? styles.rightPaneMobileOpen : ""}`}
+      data-mobile-open={mobileOpen ? "true" : "false"}
+    >
       <div className={styles.inspectorHeader}>
-        {!collapsed ? <h2 className={styles.paneTitle}>Inspector</h2> : <span />}
-        <button
-          type="button"
-          className={styles.inspectorToggle}
-          onClick={onToggleCollapsed}
-          aria-label={collapsed ? "Open inspector" : "Collapse inspector"}
-          title={collapsed ? "Open inspector" : "Collapse inspector"}
-        >
-          {collapsed ? "⟨" : "⟩"}
-        </button>
+        {effectiveCollapsed ? null : (
+          <div className={styles.paneTitleGroup}>
+            <h2 className={styles.paneTitle}>Inspector</h2>
+            <p className={styles.paneSubtitle}>Selection and project details</p>
+          </div>
+        )}
+
+        <div className={styles.inspectorHeaderActions}>
+          <button
+            type="button"
+            className={styles.drawerClose}
+            onClick={onRequestCloseMobile}
+            aria-label="Close inspector panel"
+            title="Close"
+          >
+            ×
+          </button>
+          <button
+            type="button"
+            className={styles.inspectorToggle}
+            onClick={onToggleCollapsed}
+            aria-label={effectiveCollapsed ? "Open inspector" : "Collapse inspector"}
+            title={effectiveCollapsed ? "Open inspector" : "Collapse inspector"}
+          >
+            <svg viewBox="0 0 24 24" className={styles.inspectorToggleIcon} aria-hidden="true">
+              {effectiveCollapsed ? (
+                <polyline points="9 6 15 12 9 18" />
+              ) : (
+                <polyline points="15 6 9 12 15 18" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {collapsed ? null : (
-        <>
+      {effectiveCollapsed ? null : (
+        <div className={styles.inspectorBody}>
           <div className={styles.inspectorTabs}>
             <button
               type="button"
@@ -92,34 +124,36 @@ export function InspectorPanelView({
             </button>
           </div>
 
-          {activeTab === "inspector" ? (
-            <InspectorDetailsView
-              board={board}
-              selection={selection}
-              selectedPart={selectedPart}
-              selectedTrace={selectedTrace}
-              selectedNetLabel={selectedNetLabel}
-              selectedNet={selectedNet}
-              selectedPartFixed={selectedPartFixed}
-              selectedTraceNetId={selectedTraceNetId}
-              selectedTraceNetName={selectedTraceNetName}
-              selectedTraceDisplayColor={selectedTraceDisplayColor}
-              projectParts={projectParts}
-              projectNets={projectNets}
-              fixedPartCount={fixedPartCount}
-              fixedHoleCount={fixedHoleCount}
-              onAction={onAction}
-              onUpdateBoardSize={onUpdateBoardSize}
-              onToggleBoardLabeling={onToggleBoardLabeling}
-            />
-          ) : (
-            <BomView
-              componentCount={projectParts.length}
-              rows={bomRows}
-              onExportCsv={onExportBomCsv}
-            />
-          )}
-        </>
+          <div className={styles.inspectorContent}>
+            {activeTab === "inspector" ? (
+              <InspectorDetailsView
+                board={board}
+                selection={selection}
+                selectedPart={selectedPart}
+                selectedTrace={selectedTrace}
+                selectedNetLabel={selectedNetLabel}
+                selectedNet={selectedNet}
+                selectedPartFixed={selectedPartFixed}
+                selectedTraceNetId={selectedTraceNetId}
+                selectedTraceNetName={selectedTraceNetName}
+                selectedTraceDisplayColor={selectedTraceDisplayColor}
+                projectParts={projectParts}
+                projectNets={projectNets}
+                fixedPartCount={fixedPartCount}
+                fixedHoleCount={fixedHoleCount}
+                onAction={onAction}
+                onUpdateBoardSize={onUpdateBoardSize}
+                onToggleBoardLabeling={onToggleBoardLabeling}
+              />
+            ) : (
+              <BomView
+                componentCount={projectParts.length}
+                rows={bomRows}
+                onExportCsv={onExportBomCsv}
+              />
+            )}
+          </div>
+        </div>
       )}
     </aside>
   );

@@ -22,7 +22,7 @@ export function BomView({ componentCount, rows, onExportCsv }: BomViewProps) {
     <div className={styles.paneSection}>
       <div className={styles.inspectorRow}>
         <div className={styles.label}>Bill of Materials</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.rowInlineWrap}>
           <button type="button" className={styles.smallButton} onClick={onExportCsv}>
             Export CSV
           </button>

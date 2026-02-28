@@ -5,7 +5,19 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { selectCanRedo, selectCanUndo } from "../state/selectors";
 import { useDialogGateway } from "../effects/dialogGateway";
 
-export function AppHeaderContainer() {
+type AppHeaderContainerProps = Readonly<{
+  toolsDrawerOpen: boolean;
+  inspectorDrawerOpen: boolean;
+  onToggleToolsDrawer: () => void;
+  onToggleInspectorDrawer: () => void;
+}>;
+
+export function AppHeaderContainer({
+  toolsDrawerOpen,
+  inspectorDrawerOpen,
+  onToggleToolsDrawer,
+  onToggleInspectorDrawer,
+}: AppHeaderContainerProps) {
   const state = useAppSelector((s) => s);
   const dispatch = useAppDispatch();
   const dialogs = useDialogGateway();
@@ -34,6 +46,10 @@ export function AppHeaderContainer() {
       onImportJsonFile={importJsonFile}
       onExportSvg={exportSvg}
       onExportPng={exportPng}
+      toolsDrawerOpen={toolsDrawerOpen}
+      inspectorDrawerOpen={inspectorDrawerOpen}
+      onToggleToolsDrawer={onToggleToolsDrawer}
+      onToggleInspectorDrawer={onToggleInspectorDrawer}
     />
   );
 }

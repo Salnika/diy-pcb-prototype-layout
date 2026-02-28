@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import * as styles from "../App.css";
 
 export type IconName =
@@ -23,191 +24,185 @@ export type IconName =
   | "power_gnd"
   | "dip";
 
+function icon(children: ReactNode) {
+  return (
+    <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
 export function ToolIcon({ name }: Readonly<{ name: IconName }>) {
   switch (name) {
     case "select":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <polyline points="5,4 5,20 9,16 13,22 16,20 12,14 18,14 5,4" />
-        </svg>
-      );
+      return icon(<path d="M5 4v16l4-4 3.4 5 2.5-1.6-3.4-5H18L5 4z" />);
+
     case "connect":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      return icon(
+        <>
           <circle cx="7" cy="12" r="3" />
           <circle cx="17" cy="12" r="3" />
-          <line x1="10" y1="12" x2="14" y2="12" />
-        </svg>
+          <path d="M10 12h4" />
+        </>,
       );
+
     case "fixedPoint":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <circle cx="12" cy="12" r="4" />
-          <line x1="12" y1="3" x2="12" y2="8" />
-          <line x1="12" y1="16" x2="12" y2="21" />
-          <line x1="3" y1="12" x2="8" y2="12" />
-          <line x1="16" y1="12" x2="21" y2="12" />
-        </svg>
+      return icon(
+        <>
+          <circle cx="12" cy="12" r="3.5" />
+          <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+        </>,
       );
+
     case "wire":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <polyline points="4,18 9,13 13,15 20,8" />
-          <circle cx="4" cy="18" r="1.8" />
-          <circle cx="20" cy="8" r="1.8" />
-        </svg>
+      return icon(
+        <>
+          <polyline points="4,17 9,12 13,14 20,7" />
+          <circle cx="4" cy="17" r="1.6" />
+          <circle cx="20" cy="7" r="1.6" />
+        </>,
       );
+
     case "jumper":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <path d="M4 16c3-6 13-6 16 0" />
-          <circle cx="4" cy="16" r="1.8" />
-          <circle cx="20" cy="16" r="1.8" />
-        </svg>
+      return icon(
+        <>
+          <path d="M4 16c2.5-6 13.5-6 16 0" />
+          <circle cx="4" cy="16" r="1.6" />
+          <circle cx="20" cy="16" r="1.6" />
+        </>,
       );
+
     case "label":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <path d="M4 9h9l5 5-8 8-6-6z" />
-          <circle cx="9" cy="9" r="1.5" />
-        </svg>
+      return icon(
+        <>
+          <path d="M4.5 9h8.5l6 6-8 8-6.5-6.5z" />
+          <circle cx="9" cy="9" r="1.3" />
+        </>,
       );
+
     case "erase":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <path d="M4 16l7-7 7 7-4 4H7z" />
-          <line x1="12" y1="20" x2="20" y2="20" />
-        </svg>
+      return icon(
+        <>
+          <path d="M5 15.5l6.5-6.5 7 7-3.8 3.8H8.8L5 16.2z" />
+          <path d="M12.8 19.8H20" />
+        </>,
       );
+
     case "resistor":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <polyline points="2,12 5,12 7,9 10,15 13,9 16,15 18,12 22,12" />
-        </svg>
-      );
+      return icon(<polyline points="2,12 5,12 7.2,9.2 9.8,14.8 12.4,9.2 15,14.8 17.2,12 22,12" />);
+
     case "switch":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="5" y1="7" x2="10" y2="7" />
-          <line x1="5" y1="17" x2="10" y2="17" />
-          <line x1="18" y1="12" x2="10" y2="8" />
-          <line x1="10" y1="5" x2="10" y2="9" />
-          <circle cx="5" cy="7" r="1.3" />
-          <circle cx="5" cy="17" r="1.3" />
-          <circle cx="18" cy="12" r="1.3" />
-        </svg>
+      return icon(
+        <>
+          <circle cx="5" cy="8" r="1.3" />
+          <circle cx="5" cy="16" r="1.3" />
+          <circle cx="19" cy="12" r="1.3" />
+          <path d="M6.5 8H10M6.5 16H10M10 8l8.6 3.6" />
+        </>,
       );
+
     case "diode":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="3" y1="12" x2="8" y2="12" />
-          <polygon points="8,7 15,12 8,17" />
-          <line x1="15" y1="7" x2="15" y2="17" />
-          <line x1="15" y1="12" x2="21" y2="12" />
-        </svg>
+      return icon(
+        <>
+          <path d="M3 12h4" />
+          <polygon points="7,7 14,12 7,17" />
+          <path d="M14 7v10M14 12h7" />
+        </>,
       );
+
     case "capacitor":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="3" y1="12" x2="9" y2="12" />
-          <line x1="9" y1="6" x2="9" y2="18" />
-          <line x1="15" y1="6" x2="15" y2="18" />
-          <line x1="15" y1="12" x2="21" y2="12" />
-        </svg>
+      return icon(
+        <>
+          <path d="M3 12h5M16 12h5" />
+          <path d="M8 6v12M16 6v12" />
+        </>,
       );
+
     case "capacitor_ceramic":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="3" y1="12" x2="9" y2="12" />
-          <line x1="9" y1="6" x2="9" y2="18" />
-          <line x1="15" y1="6" x2="15" y2="18" />
-          <line x1="15" y1="12" x2="21" y2="12" />
-          <rect x="10.5" y="8" width="3" height="8" />
-        </svg>
+      return icon(
+        <>
+          <path d="M3 12h5M16 12h5" />
+          <path d="M8 6v12M16 6v12" />
+          <rect x="10.7" y="8.2" width="2.6" height="7.6" rx="0.8" />
+        </>,
       );
+
     case "capacitor_electrolytic":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="3" y1="12" x2="9" y2="12" />
-          <line x1="9" y1="6" x2="9" y2="18" />
-          <path d="M15 6c2 2 2 10 0 12" />
-          <line x1="15" y1="12" x2="21" y2="12" />
-          <line x1="6" y1="6" x2="6" y2="9" />
-          <line x1="4.5" y1="7.5" x2="7.5" y2="7.5" />
-        </svg>
+      return icon(
+        <>
+          <path d="M3 12h5M16 12h5" />
+          <path d="M8 6v12" />
+          <path d="M16 6c2 1.6 2 10.4 0 12" />
+          <path d="M5.5 7.5h3M7 6v3" />
+        </>,
       );
+
     case "capacitor_film":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="3" y1="12" x2="8" y2="12" />
-          <rect x="8" y="7" width="8" height="10" rx="1.5" />
-          <line x1="16" y1="12" x2="21" y2="12" />
-        </svg>
+      return icon(
+        <>
+          <path d="M3 12h4.5M16.5 12H21" />
+          <rect x="7.5" y="7" width="9" height="10" rx="1.5" />
+        </>,
       );
+
     case "transistor":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      return icon(
+        <>
           <circle cx="12" cy="12" r="5" />
-          <line x1="6" y1="12" x2="2" y2="12" />
-          <line x1="12" y1="6" x2="12" y2="2" />
-          <line x1="12" y1="18" x2="18" y2="22" />
-          <polyline points="12,18 13.5,18.5 12.5,17" />
-        </svg>
+          <path d="M7 12H3M12 7V3M12 17l5 4" />
+          <path d="M12 16.8l1.4 0.5-0.8-1.1" />
+        </>,
       );
+
     case "potentiometer":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      return icon(
+        <>
           <polyline points="2,12 6,12 8,9 10,15 12,9 14,15 16,12 22,12" />
-          <line x1="12" y1="5" x2="12" y2="10" />
-          <polyline points="10,7 12,5 14,7" />
-        </svg>
+          <path d="M12 4v5" />
+          <polyline points="10.3,6 12,4 13.7,6" />
+        </>,
       );
+
     case "jack":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <circle cx="8" cy="12" r="4" />
-          <line x1="12" y1="12" x2="21" y2="12" />
-          <line x1="15" y1="8" x2="15" y2="16" />
-          <line x1="18" y1="9" x2="18" y2="15" />
-        </svg>
+      return icon(
+        <>
+          <circle cx="8" cy="12" r="3.7" />
+          <path d="M11.7 12H21" />
+          <path d="M15 8v8M18 9.2v5.6" />
+        </>,
       );
+
     case "power_pos":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      return icon(
+        <>
           <circle cx="12" cy="12" r="7" />
-          <line x1="12" y1="8" x2="12" y2="16" />
-          <line x1="8" y1="12" x2="16" y2="12" />
-        </svg>
+          <path d="M12 8v8M8 12h8" />
+        </>,
       );
+
     case "power_neg":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      return icon(
+        <>
           <circle cx="12" cy="12" r="7" />
-          <line x1="8" y1="12" x2="16" y2="12" />
-        </svg>
+          <path d="M8 12h8" />
+        </>,
       );
+
     case "power_gnd":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
-          <line x1="12" y1="4" x2="12" y2="10" />
-          <line x1="7" y1="10" x2="17" y2="10" />
-          <line x1="8.5" y1="13" x2="15.5" y2="13" />
-          <line x1="10" y1="16" x2="14" y2="16" />
-        </svg>
+      return icon(
+        <>
+          <path d="M12 4v5M7 9h10M8.5 12.5h7M10 16h4" />
+        </>,
       );
+
     case "dip":
-      return (
-        <svg viewBox="0 0 24 24" className={styles.toolIcon} aria-hidden="true">
+      return icon(
+        <>
           <rect x="7" y="5" width="10" height="14" rx="2" />
-          <line x1="7" y1="7" x2="4" y2="7" />
-          <line x1="7" y1="10" x2="4" y2="10" />
-          <line x1="7" y1="13" x2="4" y2="13" />
-          <line x1="7" y1="16" x2="4" y2="16" />
-          <line x1="17" y1="7" x2="20" y2="7" />
-          <line x1="17" y1="10" x2="20" y2="10" />
-          <line x1="17" y1="13" x2="20" y2="13" />
-          <line x1="17" y1="16" x2="20" y2="16" />
-        </svg>
+          <path d="M9.5 8h5" />
+          <path d="M7 7H4M7 10H4M7 13H4M7 16H4" />
+          <path d="M17 7h3M17 10h3M17 13h3M17 16h3" />
+        </>,
       );
   }
 }

@@ -17,10 +17,17 @@ import { InspectorPanelView } from "../ui/InspectorPanelView";
 
 type InspectorContainerProps = Readonly<{
   collapsed: boolean;
+  mobileOpen: boolean;
+  onRequestCloseMobile: () => void;
   onToggleCollapsed: () => void;
 }>;
 
-export function InspectorContainer({ collapsed, onToggleCollapsed }: InspectorContainerProps) {
+export function InspectorContainer({
+  collapsed,
+  mobileOpen,
+  onRequestCloseMobile,
+  onToggleCollapsed,
+}: InspectorContainerProps) {
   const state = useAppSelector((s) => s);
   const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState<"inspector" | "bom">("inspector");
@@ -49,6 +56,7 @@ export function InspectorContainer({ collapsed, onToggleCollapsed }: InspectorCo
   return (
     <InspectorPanelView
       collapsed={collapsed}
+      mobileOpen={mobileOpen}
       activeTab={activeTab}
       board={state.project.board}
       selection={state.ui.selection}
@@ -67,6 +75,7 @@ export function InspectorContainer({ collapsed, onToggleCollapsed }: InspectorCo
       bomRows={bomRows}
       onAction={dispatch}
       onToggleCollapsed={onToggleCollapsed}
+      onRequestCloseMobile={onRequestCloseMobile}
       onChangeTab={setActiveTab}
       onUpdateBoardSize={(nextWidth, nextHeight) =>
         dispatch({

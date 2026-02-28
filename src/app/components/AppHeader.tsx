@@ -13,6 +13,10 @@ type AppHeaderProps = Readonly<{
   onImportJsonFile: (file: File) => Promise<void>;
   onExportSvg: () => void;
   onExportPng: () => Promise<void>;
+  toolsDrawerOpen: boolean;
+  inspectorDrawerOpen: boolean;
+  onToggleToolsDrawer: () => void;
+  onToggleInspectorDrawer: () => void;
 }>;
 
 export function AppHeader({
@@ -27,6 +31,10 @@ export function AppHeader({
   onImportJsonFile,
   onExportSvg,
   onExportPng,
+  toolsDrawerOpen,
+  inspectorDrawerOpen,
+  onToggleToolsDrawer,
+  onToggleInspectorDrawer,
 }: AppHeaderProps) {
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const exportMenuRef = useRef<HTMLDetailsElement | null>(null);
@@ -36,99 +44,148 @@ export function AppHeader({
   }
 
   return (
-    <header className={styles.topBar}>
-      <div className={styles.brand}>Perfboard Designer</div>
+    <header className={styles.topBar} data-has-error={lastError ? "true" : "false"}>
+      <div className={styles.brandWrap}>
+        <span className={styles.brandBadge} aria-hidden="true">
+          PCB
+        </span>
+        <div className={styles.brandTextGroup}>
+          <div className={styles.brand}>Perfboard Designer</div>
+        </div>
+      </div>
+
       <div className={styles.topActions}>
-        <button
-          type="button"
-          className={styles.iconButton}
-          disabled={!canUndo}
-          onClick={onUndo}
-          title="Undo"
-          aria-label="Undo"
-        >
-          <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
-            <path d="M9 7H4v5" />
-            <path d="M4 12c1.6-3.4 4.7-5 8-5 4.4 0 8 3.6 8 8" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className={styles.iconButton}
-          disabled={!canRedo}
-          onClick={onRedo}
-          title="Redo"
-          aria-label="Redo"
-        >
-          <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
-            <path d="M15 7h5v5" />
-            <path d="M20 12c-1.6-3.4-4.7-5-8-5-4.4 0-8 3.6-8 8" />
-          </svg>
-        </button>
-        {showAutoLayout ? (
-          <button type="button" className={styles.smallButton} onClick={onRunAutoLayout}>
-            Auto-Layout
+        <div className={styles.topActionsCluster}>
+          <button
+            type="button"
+            className={styles.iconButton}
+            disabled={!canUndo}
+            onClick={onUndo}
+            title="Undo"
+            aria-label="Undo"
+          >
+            <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
+              <path d="M9 7H4v5" />
+              <path d="M4 12c1.6-3.4 4.7-5 8-5 4.4 0 8 3.6 8 8" />
+            </svg>
           </button>
-        ) : null}
+          <button
+            type="button"
+            className={styles.iconButton}
+            disabled={!canRedo}
+            onClick={onRedo}
+            title="Redo"
+            aria-label="Redo"
+          >
+            <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
+              <path d="M15 7h5v5" />
+              <path d="M20 12c-1.6-3.4-4.7-5-8-5-4.4 0-8 3.6-8 8" />
+            </svg>
+          </button>
+        </div>
+
+        <div className={styles.topActionsSecondary}>
+          {showAutoLayout ? (
+            <button
+              type="button"
+              className={`${styles.smallButton} ${styles.desktopOnly}`}
+              onClick={onRunAutoLayout}
+            >
+              Auto-Layout
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            className={`${styles.smallButton} ${styles.desktopOnly}`}
+            onClick={() => importInputRef.current?.click()}
+          >
+            Import JSON
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            style={{ display: "none" }}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              void onImportJsonFile(file);
+              event.target.value = "";
+            }}
+          />
+
+          <details ref={exportMenuRef} className={styles.dropdownRoot}>
+            <summary className={styles.dropdownTrigger}>
+              Export
+              <span className={styles.dropdownChevron}>▾</span>
+            </summary>
+            <div className={styles.dropdownMenu}>
+              <button
+                type="button"
+                className={styles.dropdownItem}
+                onClick={() => {
+                  closeExportMenu();
+                  onExportJson();
+                }}
+              >
+                JSON
+              </button>
+              <button
+                type="button"
+                className={styles.dropdownItem}
+                onClick={() => {
+                  closeExportMenu();
+                  onExportSvg();
+                }}
+              >
+                SVG
+              </button>
+              <button
+                type="button"
+                className={styles.dropdownItem}
+                onClick={() => {
+                  closeExportMenu();
+                  void onExportPng();
+                }}
+              >
+                PNG
+              </button>
+            </div>
+          </details>
+        </div>
 
         <button
           type="button"
-          className={styles.smallButton}
-          onClick={() => importInputRef.current?.click()}
+          className={`${styles.iconButton} ${styles.mobileOnly}`}
+          aria-label="Toggle tools panel"
+          aria-expanded={toolsDrawerOpen}
+          title="Tools"
+          onClick={onToggleToolsDrawer}
         >
-          Import JSON
+          <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
+            <rect x="4" y="4" width="6" height="6" rx="1.5" />
+            <rect x="14" y="4" width="6" height="6" rx="1.5" />
+            <rect x="4" y="14" width="6" height="6" rx="1.5" />
+            <rect x="14" y="14" width="6" height="6" rx="1.5" />
+          </svg>
         </button>
-        <input
-          ref={importInputRef}
-          type="file"
-          accept="application/json,.json"
-          style={{ display: "none" }}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            void onImportJsonFile(file);
-            event.target.value = "";
-          }}
-        />
 
-        <details ref={exportMenuRef} className={styles.dropdownRoot}>
-          <summary className={styles.dropdownTrigger}>
-            Export
-            <span className={styles.dropdownChevron}>▾</span>
-          </summary>
-          <div className={styles.dropdownMenu}>
-            <button
-              type="button"
-              className={styles.dropdownItem}
-              onClick={() => {
-                closeExportMenu();
-                onExportJson();
-              }}
-            >
-              JSON
-            </button>
-            <button
-              type="button"
-              className={styles.dropdownItem}
-              onClick={() => {
-                closeExportMenu();
-                onExportSvg();
-              }}
-            >
-              SVG
-            </button>
-            <button
-              type="button"
-              className={styles.dropdownItem}
-              onClick={() => {
-                closeExportMenu();
-                void onExportPng();
-              }}
-            >
-              PNG
-            </button>
-          </div>
-        </details>
+        <button
+          type="button"
+          className={`${styles.iconButton} ${styles.mobileOnly}`}
+          aria-label="Toggle inspector panel"
+          aria-expanded={inspectorDrawerOpen}
+          title="Inspector"
+          onClick={onToggleInspectorDrawer}
+        >
+          <svg viewBox="0 0 24 24" className={styles.topActionIcon} aria-hidden="true">
+            <path d="M5 7h14" />
+            <path d="M5 12h10" />
+            <path d="M5 17h8" />
+            <circle cx="18" cy="12" r="2.4" />
+          </svg>
+        </button>
 
         {lastError ? <div className={styles.errorBar}>{lastError}</div> : null}
       </div>

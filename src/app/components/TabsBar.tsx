@@ -21,13 +21,19 @@ export function TabsBar({ tabs, activeTabId, onSelectTab, onAddTab }: TabsBarPro
               type="button"
               className={active ? styles.tabButtonActive : styles.tabButton}
               onClick={() => onSelectTab(tab.id)}
+              aria-current={active ? "page" : undefined}
             >
-              {name}
+              <span className={styles.tabButtonText}>{name}</span>
             </button>
           );
         })}
       </div>
-      <button type="button" className={styles.tabAdd} onClick={onAddTab}>
+      <button
+        type="button"
+        className={styles.tabAdd}
+        onClick={onAddTab}
+        aria-label="Add project tab"
+      >
         +
       </button>
     </div>
